@@ -107,14 +107,19 @@ abstract class ApplyAppIconTask : DefaultTask() {
         val plist = contentsDir.resolve("Info.plist")
         runPlist("-c", "Delete :CFBundleIconFile", plist.absolutePath, ignoreError = true)
         runPlist("-c", "Add :CFBundleIconFile string icon.icns", plist.absolutePath)
+        runProcess("codesign", "--force", "--sign", "-", "--deep", appDir.get().asFile.absolutePath)
     }
 
     private fun runPlist(vararg cmd: String, ignoreError: Boolean = false) {
-        val process = ProcessBuilder("/usr/libexec/PlistBuddy", *cmd).redirectErrorStream(true).start()
+        runProcess("/usr/libexec/PlistBuddy", *cmd, ignoreError = ignoreError)
+    }
+
+    private fun runProcess(vararg cmd: String, ignoreError: Boolean = false) {
+        val process = ProcessBuilder(*cmd).redirectErrorStream(true).start()
         process.inputStream.bufferedReader().use { it.readLines() }
         process.waitFor()
         if (process.exitValue() != 0 && !ignoreError) {
-            throw GradleException("PlistBuddy failed: ${cmd.joinToString(" ")}")
+            throw GradleException("Command failed: ${cmd.joinToString(" ")}")
         }
     }
 }

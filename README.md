@@ -56,6 +56,23 @@ without any server or network access.
 Android is built with the classic Android application plugin; the desktop target runs
 on the JVM, so no Xcode is required to build the macOS version.
 
+### Opening the macOS app
+
+The macOS build is signed with an ad-hoc signature but is **not notarized** by Apple,
+so Gatekeeper may show a warning the first time you open it:
+
+- If the system reports that the app **cannot be verified** (or is blocked), choose
+  **Control-click (right-click) → Open** on the `.app` (or on the extracted app from
+  the `.dmg`) and confirm, or
+- Remove the downloaded-from-internet quarantine attribute once:
+
+  ```bash
+  xattr -dr com.apple.quarantine /path/to/Gomoku-NUSV.app
+  ```
+
+After that the app opens normally. The ad-hoc signature is verified with
+`codesign --verify --deep --strict` after every packaging run.
+
 ## Building from Source
 
 ### Prerequisites
