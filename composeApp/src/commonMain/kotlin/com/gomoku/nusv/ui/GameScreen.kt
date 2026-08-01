@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -77,6 +78,8 @@ fun GamePage(
         Column(Modifier.fillMaxSize()) {
             Header(controller, theme, nav)
             BoxWithConstraints(Modifier.fillMaxSize().weight(1f)) {
+                val panelMaxHeight = maxHeight * 0.45f
+                val boardMaxHeight = maxHeight * 0.55f
                 if (maxWidth > 720.dp) {
                     Row(Modifier.fillMaxSize().padding(16.dp)) {
                         BoardArea(controller, theme, Modifier.weight(1f))
@@ -85,9 +88,22 @@ fun GamePage(
                     }
                 } else {
                     Column(Modifier.fillMaxSize().padding(12.dp)) {
-                        BoardArea(controller, theme, Modifier.weight(1f))
+                        BoardArea(
+                            controller,
+                            theme,
+                            Modifier
+                                .weight(1f)
+                                .heightIn(max = boardMaxHeight)
+                        )
                         Spacer(Modifier.height(12.dp))
-                        ControlPanel(controller, theme, onThemeChange, Modifier.fillMaxWidth())
+                        ControlPanel(
+                            controller,
+                            theme,
+                            onThemeChange,
+                            Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = panelMaxHeight)
+                        )
                     }
                 }
             }

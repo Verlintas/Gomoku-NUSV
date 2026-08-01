@@ -8,6 +8,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -95,7 +96,11 @@ fun App() {
                 },
                 label = "page"
             ) { page ->
-                Box(Modifier.fillMaxSize()) {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .safeDrawingPadding()
+                ) {
                     when (page) {
                         Page.HOME -> HomePage(controller, activeTheme, nav, onThemeChange)
                         Page.GAME -> GamePage(controller, activeTheme, nav, onThemeChange)
