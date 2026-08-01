@@ -302,7 +302,9 @@ class GameController(
         aiTimedOut = false
         aiJob = scope.launch {
             val result = withContext(Dispatchers.Default) {
-                GomokuAI.bestMove(board, currentStone, config.difficulty)
+                val workBoard = Board(board.size)
+                workBoard.copyFrom(board)
+                GomokuAI.bestMove(workBoard, currentStone, config.difficulty)
             }
             aiThinking = false
             if (result.timedOut) aiTimedOut = true

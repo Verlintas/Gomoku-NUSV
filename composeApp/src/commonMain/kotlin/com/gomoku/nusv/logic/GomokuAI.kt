@@ -26,20 +26,22 @@ object GomokuAI {
     data class AiMove(val position: Position, val timedOut: Boolean)
 
     fun bestMove(board: Board, stone: Stone, difficulty: Difficulty, rng: Random = Random.Default): AiMove {
-        val moves = candidateMoves(board, radius = 2)
+        val work = Board(board.size)
+        work.copyFrom(board)
+        val moves = candidateMoves(work, radius = 2)
         if (moves.isEmpty()) {
-            val center = board.size / 2
+            val center = work.size / 2
             return AiMove(Position(center, center), timedOut = false)
         }
-        if (board.cells.all { it == 0 }) {
-            return AiMove(Position(board.size / 2, board.size / 2), timedOut = false)
+        if (work.cells.all { it == 0 }) {
+            return AiMove(Position(work.size / 2, work.size / 2), timedOut = false)
         }
 
         val depth = minOf(difficulty.searchDepth, platformMaxAiDepth())
         return when (difficulty) {
-            Difficulty.EASY -> AiMove(greedyMove(board, stone, moves, rng), timedOut = false)
-            Difficulty.MEDIUM -> searchMove(board, stone, moves, depth = minOf(3, depth))
-            Difficulty.HARD -> searchMove(board, stone, moves, depth = depth)
+            Difficulty.EASY -> AiMove(greedyMove(work, stone, moves, rng), timedOut = false)
+            Difficulty.MEDIUM -> searchMove(work, stone, moves, depth = minOf(3, depth))
+            Difficulty.HARD -> searchMove(work, stone, moves, depth = depth)
         }
     }
 

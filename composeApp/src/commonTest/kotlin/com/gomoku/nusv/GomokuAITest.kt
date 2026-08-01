@@ -75,4 +75,23 @@ class GomokuAITest {
         moves.forEach { assertTrue(it.row in 6..8 && it.col in 6..8) }
         assertNotEquals(moves.size, 225)
     }
+
+    @Test
+    fun bestMoveDoesNotMutateInputBoard() {
+        val board = Board(15)
+        listOf(
+            7 to 7, 8 to 8, 7 to 8, 6 to 6, 7 to 9,
+            8 to 9, 9 to 9, 6 to 7, 5 to 5, 8 to 7,
+            6 to 9, 5 to 7, 9 to 8, 4 to 6, 6 to 8
+        ).forEachIndexed { i, (r, c) ->
+            board.set(r, c, if (i % 2 == 0) Stone.BLACK else Stone.WHITE)
+        }
+        val before = board.cells.clone()
+        val result = GomokuAI.bestMove(board, Stone.BLACK, Difficulty.HARD)
+        assertTrue(
+            board.cells.contentEquals(before),
+            "bestMove must not mutate the input board (leftover search stones)"
+        )
+        assertTrue(result.position.row in 0 until board.size && result.position.col in 0 until board.size)
+    }
 }
