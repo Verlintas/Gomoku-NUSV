@@ -53,8 +53,20 @@ object SaveCrypto {
             val b1 = if (i + 1 < data.size) data[i + 1].toInt() and 0xFF else -1
             val b2 = if (i + 2 < data.size) data[i + 2].toInt() and 0xFF else -1
             sb.append(b64[b0 shr 2])
-            sb.append(b64[((b0 shl 4) or (b1 shr 4)) and 0x3F])
-            sb.append(if (b1 >= 0) b64[((b1 shl 2) or (b2 shr 6)) and 0x3F] else '=')
+            sb.append(
+                if (b1 >= 0) {
+                    b64[((b0 shl 4) or (b1 shr 4)) and 0x3F]
+                } else {
+                    b64[(b0 shl 4) and 0x3F]
+                }
+            )
+            sb.append(
+                when {
+                    b1 < 0 -> '='
+                    b2 < 0 -> b64[(b1 shl 2) and 0x3F]
+                    else -> b64[((b1 shl 2) or (b2 shr 6)) and 0x3F]
+                }
+            )
             sb.append(if (b2 >= 0) b64[b2 and 0x3F] else '=')
             i += 3
         }

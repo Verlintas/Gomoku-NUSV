@@ -5,6 +5,23 @@ All notable changes to Gomoku-NUSV are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1] - 2026-08-01
+
+### Fixed
+
+- **Save encryption round-trip bug (critical)** — the base64 encoder produced wrong
+  characters whenever the payload length was not a multiple of 3, so encrypted
+  saves could not be decrypted and profiles were reset. All save data now round-trips
+  correctly; tamper checks still work.
+- White player's winning line was not highlighted (highlight always checked black).
+- Undo could leave the game stuck on the AI's turn when the player played White.
+- The move timer was not restarted after Restart, so timeout forfeits stopped
+  working after the first game.
+- The move timer ran while the "resume game" dialog was shown.
+- Tic-Tac-Toe: in two-player mode the board did not refresh after a move, and in
+  vs-AI mode an AI win counted as a player win.
+- Undo now also clears the hint marker.
+
 ## [1.3.0] - 2026-08-01
 
 ### Added

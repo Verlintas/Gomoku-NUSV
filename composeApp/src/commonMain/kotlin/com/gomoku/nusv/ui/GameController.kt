@@ -119,7 +119,17 @@ class GameController(
         val playerWon = finalStatus == GameStatus.BLACK_WIN
         val playerLost = finalStatus == GameStatus.WHITE_WIN
         val isDraw = finalStatus == GameStatus.DRAW
-        winningLine = lastMove?.let { WinChecker.winningLine(board, it.row, it.col, Stone.BLACK) }
+        val winnerStone = when (finalStatus) {
+            GameStatus.BLACK_WIN -> Stone.BLACK
+            GameStatus.WHITE_WIN -> Stone.WHITE
+            else -> null
+        }
+        val last = lastMove
+        winningLine = if (winnerStone != null && last != null) {
+            WinChecker.winningLine(board, last.row, last.col, winnerStone)
+        } else {
+            null
+        }
         val difficulty = if (isVsAi) config.difficulty else null
         profile = ScoreService.apply(profile, finalStatus, difficulty)
         if (playerWon && (profile.fastestWinSec == 0 || totalSeconds < profile.fastestWinSec)) {
@@ -171,8 +181,11 @@ class GameController(
             status = GameStatus.PLAYING
             lastMove = moveHistory.lastOrNull()?.pos
             turnSecondsLeft = config.secondsPerMove
+            aiHint = null
             boardVersion++
             persistGame()
+            if (isVsAi && currentStone != playerColor) scheduleAiMove()
+            startTimer()
         }
     }
 
@@ -215,6 +228,7 @@ class GameController(
         themeIdAtStart = activeThemeId
         boardVersion++
         store.saveSavedGame(null)
+        startTimer()
         if (isVsAi && playerColor != Stone.BLACK) scheduleAiMove()
     }
 
@@ -229,7 +243,6 @@ class GameController(
         restoreRequested = false
         restart()
     }
-
     fun continueSavedGame(game: SavedGame) {
         config = GameConfig(
             boardSize = game.boardSize,
@@ -254,6 +267,7 @@ class GameController(
         timeBoostUsed = 0
         pendingSavedGame = null
         restoreRequested = false
+        startTimer()
         if (isVsAi && currentStone != playerColor) scheduleAiMove()
     }
 
@@ -366,7 +380,7 @@ class GameController(
 
     fun startTimer() {
         timerJob?.cancel()
-        if (!config.timerEnabled || status.isOver) return
+        if (!config.timerEnabled || status.isOver || restoreRequested) return
         timerJob = scope.launch {
             while (status == GameStatus.PLAYING) {
                 delay(1000)

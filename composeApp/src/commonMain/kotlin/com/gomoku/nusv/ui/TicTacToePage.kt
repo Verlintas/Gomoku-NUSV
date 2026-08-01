@@ -111,16 +111,24 @@ fun TicTacToePage(
     nav: NavController
 ) {
     var game by remember { mutableStateOf(TTTGame()) }
+    var gameVersion by remember { mutableStateOf(0) }
     var vsAi by remember { mutableStateOf(true) }
     var aiThinking by remember { mutableStateOf(false) }
 
+    fun refresh() {
+        gameVersion++
+    }
+
     fun afterMove() {
+        refresh()
         if (!vsAi || game.over) return
         if (game.current == TTTSide.O) {
             aiThinking = true
             val move = game.aiMove()
             game.play(move)
-            if (game.over && game.winner == 2) {
+            refresh()
+            // 只有玩家（X）获胜才计入胜场；AI 获胜不计
+            if (game.over && game.winner == 1) {
                 controller.onMinigameWin()
             }
             aiThinking = false
@@ -130,6 +138,7 @@ fun TicTacToePage(
     }
 
     Surface(color = theme.uiBackground, modifier = Modifier.fillMaxSize()) {
+        val refreshTick = gameVersion
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -227,6 +236,7 @@ fun TicTacToePage(
                 OutlinedButton(
                     onClick = {
                         game = TTTGame()
+                        gameVersion++
                         aiThinking = false
                     }
                 ) {
@@ -236,6 +246,7 @@ fun TicTacToePage(
                     onClick = {
                         vsAi = !vsAi
                         game = TTTGame()
+                        gameVersion++
                         aiThinking = false
                     }
                 ) {
