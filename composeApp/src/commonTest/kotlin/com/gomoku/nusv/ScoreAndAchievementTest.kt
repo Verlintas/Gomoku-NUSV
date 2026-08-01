@@ -7,77 +7,66 @@ import com.gomoku.nusv.model.Difficulty
 import com.gomoku.nusv.model.GameStatus
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class ScoreAndAchievementTest {
 
     @Test
-    fun winGrantsScoreAndCoins() {
+    fun winUpdatesStatsAndDifficulty() {
         val profile = PlayerProfile()
-        val result = ScoreService.settle(profile, GameStatus.BLACK_WIN, playerSecondsLeft = null)
-        assertEquals(100, result.scoreGained)
-        assertEquals(50, result.coinsGained)
-        val updated = ScoreService.apply(profile, result, isPlayerWin = true, isDraw = false, difficulty = Difficulty.MEDIUM)
-        assertEquals(100, updated.score)
-        assertEquals(50, updated.coins)
+        val updated = ScoreService.apply(profile, GameStatus.BLACK_WIN, Difficulty.MEDIUM)
         assertEquals(1, updated.wins)
+        assertEquals(0, updated.losses)
         assertEquals(1, updated.gamesPlayed)
+        assertEquals(1, updated.winStreak)
+        assertEquals(1, updated.bestWinStreak)
         assertEquals(1, updated.winsByDifficulty["MEDIUM"])
     }
 
     @Test
-    fun lossGrantsNothing() {
-        val profile = PlayerProfile()
-        val result = ScoreService.settle(profile, GameStatus.WHITE_WIN, playerSecondsLeft = null)
-        assertEquals(0, result.scoreGained)
-        assertEquals(0, result.coinsGained)
-        val updated = ScoreService.apply(profile, result, isPlayerWin = false, isDraw = false, difficulty = Difficulty.EASY)
+    fun lossUpdatesLossesAndResetsStreak() {
+        val profile = PlayerProfile(winStreak = 3, bestWinStreak = 3, wins = 3, gamesPlayed = 3)
+        val updated = ScoreService.apply(profile, GameStatus.WHITE_WIN, Difficulty.EASY)
         assertEquals(1, updated.losses)
-        assertEquals(0, updated.coins)
+        assertEquals(0, updated.winStreak)
+        assertEquals(3, updated.bestWinStreak)
     }
 
     @Test
-    fun drawGrantsCoins() {
+    fun drawDoesNotAffectWinLoss() {
         val profile = PlayerProfile()
-        val result = ScoreService.settle(profile, GameStatus.DRAW, playerSecondsLeft = null)
-        assertEquals(10, result.coinsGained)
+        val updated = ScoreService.apply(profile, GameStatus.DRAW, null)
+        assertEquals(0, updated.wins)
+        assertEquals(0, updated.losses)
+        assertEquals(1, updated.draws)
+        assertEquals(1, updated.gamesPlayed)
     }
 
     @Test
     fun firstWinUnlocksAchievements() {
         var profile = PlayerProfile()
-        // 第 1 胜（人机模式）
-        val result = ScoreService.settle(profile, GameStatus.BLACK_WIN, null)
-        profile = ScoreService.apply(profile, result, true, false, Difficulty.EASY)
+        profile = ScoreService.apply(profile, GameStatus.BLACK_WIN, Difficulty.EASY)
         val unlocked = Achievements.newlyUnlocked(profile, wonAgainstAi = true, difficulty = Difficulty.EASY)
         val ids = unlocked.map { it.id }
         assertTrue("first_win" in ids)
         assertTrue("ai_first_win" in ids)
-        // 奖励金币
-        val reward = unlocked.sumOf { it.coinReward }
-        assertEquals(100, reward)
     }
 
     @Test
     fun achievementsNotRepeated() {
         var profile = PlayerProfile()
-        val result = ScoreService.settle(profile, GameStatus.BLACK_WIN, null)
-        profile = ScoreService.apply(profile, result, true, false, Difficulty.EASY)
+        profile = ScoreService.apply(profile, GameStatus.BLACK_WIN, Difficulty.EASY)
         val unlocked1 = Achievements.newlyUnlocked(profile, true, Difficulty.EASY)
         profile = profile.copy(achievements = unlocked1.map { it.id })
-        // 再赢一局，不应重复解锁
-        val result2 = ScoreService.settle(profile, GameStatus.BLACK_WIN, null)
-        profile = ScoreService.apply(profile, result2, true, false, Difficulty.EASY)
-        val unlocked2 = Achievements.newlyUnlocked(profile, true, Difficulty.EASY)
+        val result2 = ScoreService.apply(profile, GameStatus.BLACK_WIN, Difficulty.EASY)
+        val unlocked2 = Achievements.newlyUnlocked(result2, true, Difficulty.EASY)
         assertTrue(unlocked2.isEmpty())
     }
 
     @Test
     fun hardWinUnlocksHardAchievement() {
         var profile = PlayerProfile(winStreak = 1, wins = 1, bestWinStreak = 1, gamesPlayed = 1)
-        val result = ScoreService.settle(profile, GameStatus.BLACK_WIN, null)
-        profile = ScoreService.apply(profile, result, true, false, Difficulty.HARD)
+        profile = ScoreService.apply(profile, GameStatus.BLACK_WIN, Difficulty.HARD)
         val unlocked = Achievements.newlyUnlocked(profile, true, Difficulty.HARD)
         assertTrue(unlocked.any { it.id == "hard_win" })
     }
@@ -86,8 +75,7 @@ class ScoreAndAchievementTest {
     fun statsTrackedAcrossDifficulties() {
         var profile = PlayerProfile()
         fun win(d: Difficulty) {
-            val r = ScoreService.settle(profile, GameStatus.BLACK_WIN, null)
-            profile = ScoreService.apply(profile, r, true, false, d)
+            profile = ScoreService.apply(profile, GameStatus.BLACK_WIN, d)
         }
         win(Difficulty.EASY)
         win(Difficulty.EASY)
@@ -95,6 +83,5 @@ class ScoreAndAchievementTest {
         assertEquals(2, profile.winsByDifficulty["EASY"])
         assertEquals(1, profile.winsByDifficulty["HARD"])
         assertEquals(3, profile.gamesPlayed)
-        assertFalse("hard_win" in profile.achievements)
     }
 }

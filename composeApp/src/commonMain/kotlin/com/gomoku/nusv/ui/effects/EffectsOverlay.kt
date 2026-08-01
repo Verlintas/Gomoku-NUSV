@@ -63,7 +63,7 @@ private class ParticleEngine {
         repeat(count) {
             val angle = rng.nextFloat() * 2f * PI.toFloat()
             val v = speed * (0.3f + rng.nextFloat() * 0.9f)
-            val maxLife = 0.55f + rng.nextFloat() * 0.5f
+            val maxLife = 0.7f + rng.nextFloat() * 0.6f
             particles.add(
                 Particle(
                     x = x,
@@ -73,7 +73,7 @@ private class ParticleEngine {
                     life = maxLife,
                     maxLife = maxLife,
                     color = colors[rng.nextInt(colors.size)],
-                    size = 1.5f + rng.nextFloat() * 2.5f
+                    size = 2.5f + rng.nextFloat() * 3.5f
                 )
             )
         }
@@ -95,15 +95,16 @@ private class ParticleEngine {
                     life = maxLife,
                     maxLife = maxLife,
                     color = colors[rng.nextInt(colors.size)],
-                    size = 1.5f + rng.nextFloat() * 2.5f
+                    size = 2.5f + rng.nextFloat() * 3.5f
                 )
             )
         }
     }
 
     fun ripple(x: Float, y: Float, color: Color, maxRadius: Float) {
-        rings.add(Ring(x, y, radius = 3f, maxRadius = maxRadius, life = 0.8f, maxLife = 0.8f, color = color))
-        rings.add(Ring(x, y, radius = 3f, maxRadius = maxRadius * 0.6f, life = 0.55f, maxLife = 0.55f, color = color))
+        rings.add(Ring(x, y, radius = 3f, maxRadius = maxRadius, life = 1.0f, maxLife = 1.0f, color = color))
+        rings.add(Ring(x, y, radius = 3f, maxRadius = maxRadius * 0.65f, life = 0.7f, maxLife = 0.7f, color = color))
+        rings.add(Ring(x, y, radius = 3f, maxRadius = maxRadius * 0.35f, life = 0.45f, maxLife = 0.45f, color = Color.White))
     }
 
     fun update(dt: Float) {
@@ -139,17 +140,17 @@ private class ParticleEngine {
             for (r in rings) {
                 val alpha = r.life / r.maxLife
                 drawCircle(
-                    color = r.color.copy(alpha = alpha * 0.55f),
+                    color = r.color.copy(alpha = alpha * 0.8f),
                     radius = r.radius,
                     center = Offset(r.x, r.y),
-                    style = Stroke(width = 2.5f * alpha + 1f)
+                    style = Stroke(width = 5f * alpha + 2f)
                 )
             }
             for (p in particles) {
                 val alpha = p.life / p.maxLife
                 drawCircle(
-                    color = p.color.copy(alpha = alpha * 0.22f),
-                    radius = p.size * 3f,
+                    color = p.color.copy(alpha = alpha * 0.35f),
+                    radius = p.size * 3.5f,
                     center = Offset(p.x, p.y)
                 )
                 drawCircle(
@@ -224,11 +225,11 @@ fun EffectsOverlay(
                     engine.burst(
                         c.x, c.y,
                         colors = listOf(theme.accent, Color.White, Color(0xFF7FE7FF)),
-                        count = 26,
-                        speed = 170f
+                        count = 42,
+                        speed = 240f
                     )
                 }
-                if (rippleOn) engine.ripple(c.x, c.y, theme.accent, layout.cell * 5f)
+                if (rippleOn) engine.ripple(c.x, c.y, theme.accent, layout.cell * 7f)
             }
         }
         LaunchedEffect(winningLine) {
@@ -237,8 +238,8 @@ fun EffectsOverlay(
                     start = layout.center(winningLine.first().first, winningLine.first().second),
                     end = layout.center(winningLine.last().first, winningLine.last().second),
                     colors = listOf(theme.accent, Color.White, Color(0xFFFFD54F)),
-                    count = 70,
-                    speed = 240f
+                    count = 110,
+                    speed = 300f
                 )
             }
         }
@@ -247,7 +248,7 @@ fun EffectsOverlay(
         val sweep by infinite.animateFloat(
             initialValue = 0f,
             targetValue = 1f,
-            animationSpec = infiniteRepeatable(tween(3400, easing = FastOutSlowInEasing)),
+            animationSpec = infiniteRepeatable(tween(4600, easing = FastOutSlowInEasing)),
             label = "sweep"
         )
         val neonFlow by infinite.animateFloat(
@@ -266,24 +267,24 @@ fun EffectsOverlay(
                     brush = Brush.verticalGradient(
                         listOf(
                             Color.Transparent,
-                            theme.accent.copy(alpha = 0.06f),
-                            theme.accent.copy(alpha = 0.30f),
-                            Color.White.copy(alpha = 0.5f),
-                            theme.accent.copy(alpha = 0.30f),
-                            theme.accent.copy(alpha = 0.06f),
+                            theme.accent.copy(alpha = 0.16f),
+                            theme.accent.copy(alpha = 0.55f),
+                            Color.White.copy(alpha = 0.95f),
+                            theme.accent.copy(alpha = 0.55f),
+                            theme.accent.copy(alpha = 0.16f),
                             Color.Transparent
                         ),
-                        startY = y - layout.cell * 1.6f,
-                        endY = y + layout.cell * 1.6f
+                        startY = y - layout.cell * 2.2f,
+                        endY = y + layout.cell * 2.2f
                     ),
-                    topLeft = Offset(layout.origin.x - layout.cell, y - layout.cell * 1.6f),
-                    size = Size(side, layout.cell * 3.2f)
+                    topLeft = Offset(layout.origin.x - layout.cell, y - layout.cell * 2.2f),
+                    size = Size(side, layout.cell * 4.4f)
                 )
                 drawLine(
-                    color = Color.White.copy(alpha = 0.55f),
+                    color = Color.White.copy(alpha = 0.95f),
                     start = Offset(layout.origin.x - layout.cell, y),
                     end = Offset(layout.origin.x + layout.cell * boardSize, y),
-                    strokeWidth = 1.6f
+                    strokeWidth = 2.6f
                 )
             }
 

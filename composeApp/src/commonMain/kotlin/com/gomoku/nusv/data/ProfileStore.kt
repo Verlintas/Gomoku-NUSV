@@ -6,7 +6,6 @@ import com.gomoku.nusv.model.GameMode
 import com.gomoku.nusv.model.Move
 import com.gomoku.nusv.model.Position
 import com.gomoku.nusv.model.Stone
-import com.gomoku.nusv.ui.effects.EffectRegistry
 import com.russhwolf.settings.Settings
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -53,23 +52,13 @@ class ProfileStore(private val settings: Settings) {
     private val json = Json { ignoreUnknownKeys = true }
 
     fun loadProfile(): PlayerProfile {
-        val raw = settings.getStringOrNull(KEY_PROFILE) ?: return PlayerProfile().withFreeEffects()
+        val raw = settings.getStringOrNull(KEY_PROFILE) ?: return PlayerProfile()
         return try {
-            val profile = json.decodeFromString<PlayerProfile>(raw)
-            if (profile.purchasedEffects.isEmpty() && profile.enabledEffects.isEmpty()) {
-                val migrated = profile.withFreeEffects()
-                saveProfile(migrated)
-                migrated
-            } else {
-                profile
-            }
+            json.decodeFromString<PlayerProfile>(raw)
         } catch (_: Exception) {
-            PlayerProfile().withFreeEffects()
+            PlayerProfile()
         }
     }
-
-    private fun PlayerProfile.withFreeEffects(): PlayerProfile =
-        if (enabledEffects.isEmpty()) copy(enabledEffects = EffectRegistry.freeEffects) else this
 
     fun saveProfile(profile: PlayerProfile) {
         settings.putString(KEY_PROFILE, json.encodeToString(profile))

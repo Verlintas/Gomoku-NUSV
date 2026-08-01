@@ -8,7 +8,6 @@ import com.gomoku.nusv.data.Achievement
 import com.gomoku.nusv.data.Achievements
 import com.gomoku.nusv.data.ProfileStore
 import com.gomoku.nusv.data.SavedGame
-import com.gomoku.nusv.data.ScoreResult
 import com.gomoku.nusv.data.ScoreService
 import com.gomoku.nusv.logic.GomokuAI
 import com.gomoku.nusv.logic.WinChecker
@@ -26,7 +25,6 @@ import com.gomoku.nusv.sound.SoundType
 import com.gomoku.nusv.ui.effects.BoardEffect
 import com.gomoku.nusv.ui.effects.EffectRegistry
 import com.gomoku.nusv.ui.theme.BoardTheme
-import com.gomoku.nusv.ui.theme.ThemeRegistry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -52,7 +50,6 @@ class GameController(
     var aiTimedOut by mutableStateOf(false)
     var turnSecondsLeft by mutableStateOf(config.secondsPerMove)
     var totalSeconds by mutableIntStateOf(0)
-    var scoreResult by mutableStateOf<ScoreResult?>(null)
     var showResultDialog by mutableStateOf(false)
     var pendingSavedGame by mutableStateOf<SavedGame?>(null)
     var restoreRequested by mutableStateOf(false)
@@ -60,11 +57,8 @@ class GameController(
     var winningLine by mutableStateOf<List<Pair<Int, Int>>?>(null)
     var newlyUnlocked by mutableStateOf<List<Achievement>>(emptyList())
     var showAchievementToast by mutableStateOf(false)
-    var showShopDialog by mutableStateOf(false)
     var showAchievementsDialog by mutableStateOf(false)
     var showStatsDialog by mutableStateOf(false)
-    var showEffectShopDialog by mutableStateOf(false)
-    var coinFlash by mutableIntStateOf(0)
 
     var playerColor: Stone = Stone.BLACK
 
@@ -119,24 +113,18 @@ class GameController(
         val playerWon = finalStatus == GameStatus.BLACK_WIN
         val playerLost = finalStatus == GameStatus.WHITE_WIN
         val isDraw = finalStatus == GameStatus.DRAW
-        val secondsLeft = if (finalStatus == GameStatus.BLACK_WIN) turnSecondsLeft else null
         winningLine = lastMove?.let { WinChecker.winningLine(board, it.row, it.col, Stone.BLACK) }
         val difficulty = if (isVsAi) config.difficulty else null
-        val result = ScoreService.settle(profile, finalStatus, secondsLeft)
-        profile = ScoreService.apply(profile, result, playerWon, isDraw, difficulty)
+        profile = ScoreService.apply(profile, finalStatus, difficulty)
         val unlocked = Achievements.newlyUnlocked(profile, playerWon && isVsAi, difficulty)
         if (unlocked.isNotEmpty()) {
-            val reward = unlocked.sumOf { it.coinReward }
             profile = profile.copy(
-                coins = profile.coins + reward,
                 achievements = (profile.achievements + unlocked.map { it.id }).distinct()
             )
             newlyUnlocked = unlocked
             showAchievementToast = true
-            coinFlash++
         }
         store.saveProfile(profile)
-        scoreResult = result
         showResultDialog = true
         sound.play(
             when {
@@ -199,7 +187,6 @@ class GameController(
         aiThinking = false
         turnSecondsLeft = config.secondsPerMove
         totalSeconds = 0
-        scoreResult = null
         aiTimedOut = false
         winningLine = null
         newlyUnlocked = emptyList()
@@ -283,40 +270,9 @@ class GameController(
         restart()
     }
 
-    // ---------- 商店 / 主题 ----------
-
-    fun isThemeOwned(theme: BoardTheme): Boolean = ThemeRegistry.isOwned(theme, profile.purchasedThemes)
-
-    fun purchaseTheme(theme: BoardTheme): Boolean {
-        if (ThemeRegistry.isOwned(theme, profile.purchasedThemes)) return true
-        if (profile.coins < theme.price) return false
-        profile = profile.copy(
-            coins = profile.coins - theme.price,
-            purchasedThemes = (profile.purchasedThemes + theme.id).distinct()
-        )
-        store.saveProfile(profile)
-        coinFlash++
-        return true
-    }
-
-    // ---------- 特效 ----------
-
-    fun isEffectOwned(effect: BoardEffect): Boolean =
-        EffectRegistry.isOwned(effect, profile.purchasedEffects)
+    // ---------- 特效自定义开关 ----------
 
     fun isEffectEnabled(effect: BoardEffect): Boolean = effect.id in profile.enabledEffects
-
-    fun purchaseEffect(effect: BoardEffect): Boolean {
-        if (EffectRegistry.isOwned(effect, profile.purchasedEffects)) return true
-        if (profile.coins < effect.price) return false
-        profile = profile.copy(
-            coins = profile.coins - effect.price,
-            purchasedEffects = (profile.purchasedEffects + effect.id).distinct()
-        )
-        store.saveProfile(profile)
-        coinFlash++
-        return true
-    }
 
     fun setEffectEnabled(effect: BoardEffect, enabled: Boolean) {
         val current = profile.enabledEffects.toMutableList()

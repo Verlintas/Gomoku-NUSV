@@ -96,8 +96,6 @@ fun GameScreen(
     ResultDialog(controller, theme)
     ResignDialog(controller, theme)
     RestoreDialog(controller, theme)
-    ShopDialog(controller, theme, onThemeChange)
-    EffectShopDialog(controller, theme)
     AchievementsDialog(controller, theme)
     StatsDialog(controller, theme)
 }
@@ -127,90 +125,28 @@ private fun Header(controller: GameController, theme: BoardTheme) {
                     )
                 }
             }
-            CoinBadge(controller, theme)
-            Spacer(Modifier.width(10.dp))
-            if (compact) {
-                Text(
-                    I18n.t("score") + " ${controller.profile.score}",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = theme.textPrimary,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(theme.uiSurfaceVariant)
-                        .padding(horizontal = 10.dp, vertical = 6.dp)
-                )
-            } else {
-                ScoreBadge(controller, theme)
-            }
+            ScoreBadge(controller, theme, compact)
         }
     }
 }
 
 @Composable
-private fun CoinBadge(controller: GameController, theme: BoardTheme) {
-    val progress = remember { Animatable(1f) }
-    LaunchedEffect(controller.coinFlash) {
-        if (controller.coinFlash > 0) {
-            progress.snapTo(1.4f)
-            progress.animateTo(1f, tween(500, easing = FastOutSlowInEasing))
-        }
-    }
-    Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF8E1)),
-        shape = RoundedCornerShape(14.dp),
-        border = BorderStroke(1.dp, Color(0xFFF0C94C))
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(horizontal = 14.dp, vertical = 8.dp)
-                .graphicsLayer {
-                    scaleX = progress.value
-                    scaleY = progress.value
-                },
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(16.dp)
-                    .clip(CircleShape)
-                    .background(Brush.radialGradient(listOf(Color(0xFFFFE082), Color(0xFFF0C94C))))
-            )
-            Text(
-                "${controller.profile.coins}",
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF8D6E00)
-            )
-        }
-    }
-}
-
-@Composable
-private fun ScoreBadge(controller: GameController, theme: BoardTheme) {
+private fun ScoreBadge(controller: GameController, theme: BoardTheme, compact: Boolean = false) {
     Card(
         colors = CardDefaults.cardColors(containerColor = theme.uiSurfaceVariant),
         shape = RoundedCornerShape(14.dp)
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(if (compact) 8.dp else 14.dp)
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(I18n.t("score"), fontSize = 11.sp, color = theme.textSecondary)
-                Text(
-                    "${controller.profile.score}",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = theme.accent
-                )
-            }
             VerticalStat(controller.profile.wins, "wins", theme)
             VerticalStat(controller.profile.losses, "losses", theme)
-            VerticalStat(controller.profile.draws, "draws", theme)
-            VerticalStat(controller.profile.winStreak, "streak", theme)
+            if (!compact) {
+                VerticalStat(controller.profile.draws, "draws", theme)
+                VerticalStat(controller.profile.winStreak, "streak", theme)
+            }
         }
     }
 }
@@ -257,7 +193,9 @@ private fun BoardArea(controller: GameController, theme: BoardTheme, modifier: M
             boardVersion = controller.boardVersion,
             enabledEffects = controller.profile.enabledEffects,
             winningLine = controller.winningLine,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp)
         )
         if (controller.aiThinking) {
             Card(
@@ -313,7 +251,7 @@ private fun AchievementToast(controller: GameController, theme: BoardTheme) {
             )
             controller.newlyUnlocked.forEach { a ->
                 Text(
-                    I18n.t(a.nameKey) + " +" + a.coinReward + " " + I18n.t("coins"),
+                    I18n.t(a.nameKey),
                     fontSize = 13.sp,
                     color = Color(0xFF5D4A00)
                 )
@@ -459,21 +397,15 @@ private fun ControlPanel(
             }
 
             ChipGroup(I18n.t("theme"), theme) {
-                ThemeRegistry.themes.filter { controller.isThemeOwned(it) }.forEach { t ->
+                ThemeRegistry.themes.forEach { t ->
                     ChoiceChip(I18n.t(t.nameKey), t.id == theme.id, theme) { onThemeChange(t) }
                 }
-            }
-            OutlinedButton(
-                onClick = { controller.showShopDialog = true },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(I18n.t("theme_shop"), fontSize = 13.sp)
             }
 
             HorizontalDivider(color = theme.uiSurfaceVariant)
 
             Text(I18n.t("effects"), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = theme.textSecondary)
-            EffectRegistry.all.filter { controller.isEffectOwned(it) }.forEach { e ->
+            EffectRegistry.all.forEach { e ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text(I18n.t(e.nameKey), fontSize = 13.sp, color = theme.textPrimary)
@@ -484,12 +416,6 @@ private fun ControlPanel(
                         onCheckedChange = { controller.setEffectEnabled(e, it) }
                     )
                 }
-            }
-            OutlinedButton(
-                onClick = { controller.showEffectShopDialog = true },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(I18n.t("effect_shop"), fontSize = 13.sp)
             }
 
             HorizontalDivider(color = theme.uiSurfaceVariant)
@@ -621,8 +547,7 @@ private fun formatClock(seconds: Int): String {
 
 @Composable
 private fun ResultDialog(controller: GameController, theme: BoardTheme) {
-    if (!controller.showResultDialog || controller.scoreResult == null) return
-    val result = controller.scoreResult!!
+    if (!controller.showResultDialog) return
     val status = controller.status
     val (title, titleColor) = when (status) {
         GameStatus.BLACK_WIN -> I18n.t("black_wins") to Color(0xFF2E7D32)
@@ -655,35 +580,19 @@ private fun ResultDialog(controller: GameController, theme: BoardTheme) {
                             else -> I18n.t("ai_won")
                         },
                         color = theme.textPrimary,
-                        fontSize = 14.sp
+                        fontSize = 14.sp,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
                     )
                 } else {
                     Text(
                         if (isDraw) I18n.t("draw_both") else I18n.t("congrats", "winner" to stoneName(controller.currentStone.opponent)),
                         color = theme.textPrimary,
-                        fontSize = 14.sp
+                        fontSize = 14.sp,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
                     )
                 }
-                if (result.breakdown.isNotEmpty()) {
-                    HorizontalDivider(color = theme.uiSurfaceVariant)
-                    result.breakdown.forEach { line ->
-                        Text(
-                            line,
-                            color = theme.textSecondary,
-                            fontSize = 13.sp,
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                        )
-                    }
-                }
-                Text(
-                    I18n.t("score_gained", "n" to "${result.scoreGained}"),
-                    color = theme.accent,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                )
             }
         },
         confirmButton = {
@@ -749,189 +658,6 @@ private fun RestoreDialog(controller: GameController, theme: BoardTheme) {
 }
 
 @Composable
-private fun ShopDialog(
-    controller: GameController,
-    theme: BoardTheme,
-    onThemeChange: (BoardTheme) -> Unit
-) {
-    if (!controller.showShopDialog) return
-    AlertDialog(
-        onDismissRequest = { controller.showShopDialog = false },
-        containerColor = theme.uiSurface,
-        title = {
-            Column {
-                Text(I18n.t("theme_shop"), color = theme.textPrimary, fontWeight = FontWeight.Bold)
-                Text(
-                    I18n.t("my_coins", "n" to "${controller.profile.coins}"),
-                    color = theme.textSecondary,
-                    fontSize = 12.sp
-                )
-            }
-        },
-        text = {
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                ThemeRegistry.themes.forEach { t ->
-                    val owned = controller.isThemeOwned(t)
-                    val selected = t.id == theme.id
-                    Card(
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (selected) theme.uiSurfaceVariant else theme.uiBackground
-                        ),
-                        shape = RoundedCornerShape(12.dp),
-                        border = BorderStroke(1.dp, if (selected) theme.accent else theme.uiSurfaceVariant)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(44.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(t.boardColor)
-                                    .border(1.dp, t.gridColor, RoundedCornerShape(8.dp))
-                            )
-                            Column(Modifier.weight(1f)) {
-                                Text(
-                                    I18n.t(t.nameKey) + if (selected) I18n.t("in_use") else "",
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = theme.textPrimary
-                                )
-                                Text(I18n.t(t.descKey), fontSize = 12.sp, color = theme.textSecondary)
-                            }
-                            when {
-                                selected -> TextButton(onClick = { controller.showShopDialog = false }) {
-                                    Text(I18n.t("in_use_short"), color = theme.accent, fontSize = 13.sp)
-                                }
-                                owned -> Button(onClick = { onThemeChange(t); controller.showShopDialog = false }) {
-                                    Text(I18n.t("use"), fontSize = 13.sp)
-                                }
-                                else -> Button(
-                                    enabled = controller.profile.coins >= t.price,
-                                    onClick = {
-                                        if (controller.purchaseTheme(t)) {
-                                            onThemeChange(t)
-                                            controller.showShopDialog = false
-                                        }
-                                    }
-                                ) {
-                                    Text(I18n.t("coins_price", "n" to "${t.price}"), fontSize = 13.sp)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = { controller.showShopDialog = false }) { Text(I18n.t("close")) }
-        }
-    )
-}
-
-@Composable
-private fun EffectShopDialog(controller: GameController, theme: BoardTheme) {
-    if (!controller.showEffectShopDialog) return
-    AlertDialog(
-        onDismissRequest = { controller.showEffectShopDialog = false },
-        containerColor = theme.uiSurface,
-        title = {
-            Column {
-                Text(I18n.t("effect_shop"), color = theme.textPrimary, fontWeight = FontWeight.Bold)
-                Text(
-                    I18n.t("my_coins", "n" to "${controller.profile.coins}"),
-                    color = theme.textSecondary,
-                    fontSize = 12.sp
-                )
-            }
-        },
-        text = {
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                EffectRegistry.all.forEach { e ->
-                    val owned = controller.isEffectOwned(e)
-                    val enabled = controller.isEffectEnabled(e)
-                    Card(
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (enabled) theme.uiSurfaceVariant else theme.uiBackground
-                        ),
-                        shape = RoundedCornerShape(12.dp),
-                        border = BorderStroke(1.dp, if (enabled) theme.accent else theme.uiSurfaceVariant)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(44.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(
-                                        Brush.linearGradient(
-                                            listOf(theme.accent.copy(alpha = 0.35f), theme.uiSurfaceVariant)
-                                        )
-                                    )
-                                    .border(1.dp, theme.accent.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
-                            )
-                            Column(Modifier.weight(1f)) {
-                                Text(
-                                    I18n.t(e.nameKey) + if (enabled) I18n.t("enabled_suffix") else "",
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = theme.textPrimary
-                                )
-                                Text(I18n.t(e.descKey), fontSize = 12.sp, color = theme.textSecondary)
-                            }
-                            when {
-                                enabled -> TextButton(onClick = { controller.showEffectShopDialog = false }) {
-                                    Text(I18n.t("enabled_short"), color = theme.accent, fontSize = 13.sp)
-                                }
-                                owned -> Button(
-                                    onClick = {
-                                        controller.setEffectEnabled(e, true)
-                                        controller.showEffectShopDialog = false
-                                    }
-                                ) {
-                                    Text(I18n.t("enable"), fontSize = 13.sp)
-                                }
-                                else -> Button(
-                                    enabled = controller.profile.coins >= e.price,
-                                    onClick = {
-                                        if (controller.purchaseEffect(e)) {
-                                            controller.setEffectEnabled(e, true)
-                                            controller.showEffectShopDialog = false
-                                        }
-                                    }
-                                ) {
-                                    Text(I18n.t("coins_price", "n" to "${e.price}"), fontSize = 13.sp)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = { controller.showEffectShopDialog = false }) { Text(I18n.t("close")) }
-        }
-    )
-}
-
-@Composable
 private fun AchievementsDialog(controller: GameController, theme: BoardTheme) {
     if (!controller.showAchievementsDialog) return
     AlertDialog(
@@ -977,11 +703,7 @@ private fun AchievementsDialog(controller: GameController, theme: BoardTheme) {
                                 )
                             }
                             Text(
-                                if (unlocked) {
-                                    I18n.t("unlocked_reward", "n" to "${a.coinReward}")
-                                } else {
-                                    I18n.t("reward", "n" to "${a.coinReward}")
-                                },
+                                if (unlocked) I18n.t("unlocked_short") else I18n.t("locked_short"),
                                 fontSize = 12.sp,
                                 color = if (unlocked) Color(0xFF8D6E00) else theme.textSecondary
                             )
@@ -1016,9 +738,6 @@ private fun StatsDialog(controller: GameController, theme: BoardTheme) {
                 InfoRow(I18n.t("win_rate"), "${winRate}%", theme)
                 InfoRow(I18n.t("current_streak"), "${p.winStreak}", theme)
                 InfoRow(I18n.t("best_streak"), "${p.bestWinStreak}", theme)
-                InfoRow(I18n.t("score"), "${p.score}", theme)
-                InfoRow(I18n.t("coins"), "${p.coins}", theme)
-                InfoRow(I18n.t("purchased_themes"), "${p.purchasedThemes.size} / ${ThemeRegistry.themes.count { it.price > 0 }}", theme)
                 HorizontalDivider(color = theme.uiSurfaceVariant)
                 Text(I18n.t("difficulty_wins"), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = theme.textSecondary)
                 Difficulty.entries.forEach { d ->

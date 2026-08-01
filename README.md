@@ -22,14 +22,18 @@ dependencies.
 - **Undo / Resign / Restart** — undo removes both sides' last moves in AI mode.
 - **Game persistence** — an unfinished game is saved automatically and a dialog
   offers to resume it on the next launch.
-- **Score and statistics** — persistent profile tracking score, wins, losses, draws,
-  and win streak. Score awards include win base, streak bonus, and time bonus.
+- **Statistics** — persistent profile tracking wins, losses, draws, win streak,
+  and per-difficulty wins.
 - **Board sizes** — 13×13, 15×15, or 19×19.
-- **Color themes** — wood, deep space, and ocean themes, with the selection persisted.
+- **Color themes** — six fully unlocked themes (wood, deep space, ocean, bamboo,
+  mint, and rose) with the selection persisted.
 - **Polished board rendering** — gradient stones with highlights and shadows, drop-in
   animation for the last move, last-move marker, and hover preview.
 - **Sound effects** — synthesized on-device (no audio assets): place, win, draw, and
   timeout sounds.
+- **Sci-fi effects** — all four visual effects are free and individually toggleable:
+  energy ripples on moves, particle bursts, a hologram scan beam, and a neon
+  winning-line trail.
 - **Accessibility** — the board exposes a semantic click action for screen readers
   and automated UI testing.
 
@@ -133,9 +137,9 @@ profile is a one-file change per target.
 User data is stored via the multiplatform-settings library (SharedPreferences on
 Android, Preferences on the desktop JVM):
 
-- player profile (score, stats, streaks)
-- selected theme
-- game configuration (mode, difficulty, board size, timer)
+- player profile (stats, streaks, unlocked achievements)
+- selected theme and enabled effects
+- game configuration (mode, difficulty, board size, timer, language)
 - the most recent unfinished game, restored on demand
 
 ## License

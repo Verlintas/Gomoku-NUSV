@@ -5,20 +5,19 @@ import com.gomoku.nusv.model.Difficulty
 data class Achievement(
     val id: String,
     val nameKey: String,
-    val descKey: String,
-    val coinReward: Int
+    val descKey: String
 )
 
 object Achievements {
 
     val all: List<Achievement> = listOf(
-        Achievement("first_win", "ach_first_win", "ach_first_win_desc", 50),
-        Achievement("wins_10", "ach_wins_10", "ach_wins_10_desc", 100),
-        Achievement("streak_5", "ach_streak_5", "ach_streak_5_desc", 150),
-        Achievement("hard_win", "ach_hard_win", "ach_hard_win_desc", 150),
-        Achievement("games_50", "ach_games_50", "ach_games_50_desc", 200),
-        Achievement("draws_3", "ach_draws_3", "ach_draws_3_desc", 100),
-        Achievement("ai_first_win", "ach_ai_first_win", "ach_ai_first_win_desc", 50)
+        Achievement("first_win", "ach_first_win", "ach_first_win_desc"),
+        Achievement("wins_10", "ach_wins_10", "ach_wins_10_desc"),
+        Achievement("streak_5", "ach_streak_5", "ach_streak_5_desc"),
+        Achievement("hard_win", "ach_hard_win", "ach_hard_win_desc"),
+        Achievement("games_50", "ach_games_50", "ach_games_50_desc"),
+        Achievement("draws_3", "ach_draws_3", "ach_draws_3_desc"),
+        Achievement("ai_first_win", "ach_ai_first_win", "ach_ai_first_win_desc")
     )
 
     fun byId(id: String): Achievement? = all.find { it.id == id }

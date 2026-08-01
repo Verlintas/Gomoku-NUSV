@@ -5,6 +5,17 @@ All notable changes to Gomoku-NUSV are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-08-01
+
+### Changed
+
+- **Score and coin systems removed.** All themes and effects are now unlocked from
+  the start — full customization with zero grind. The theme and effect shops were
+  removed; every board style and sci-fi effect is available directly in the
+  settings panel.
+- Achievements are now pure collectibles (no coin rewards).
+- The statistics dialog no longer shows score or owned-theme counters.
+
 ## [Unreleased]
 
 ### Added

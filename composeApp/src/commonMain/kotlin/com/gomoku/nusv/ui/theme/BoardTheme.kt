@@ -6,7 +6,6 @@ data class BoardTheme(
     val id: String,
     val nameKey: String,
     val descKey: String,
-    val price: Int,
     val boardColor: Color,
     val gridColor: Color,
     val starColor: Color,
@@ -28,8 +27,7 @@ object ThemeRegistry {
         id = "wood",
         nameKey = "theme_wood",
         descKey = "theme_wood_desc",
-        price = 0,
-        boardColor = Color(0xFFE8C97E),
+                boardColor = Color(0xFFE8C97E),
         gridColor = Color(0xFF6B4F2A),
         starColor = Color(0xFF6B4F2A),
         blackStone = Color(0xFF1A1A1A),
@@ -48,8 +46,7 @@ object ThemeRegistry {
         id = "dark",
         nameKey = "theme_dark",
         descKey = "theme_dark_desc",
-        price = 0,
-        boardColor = Color(0xFF2B3A4A),
+                boardColor = Color(0xFF2B3A4A),
         gridColor = Color(0xFF9FB6C9),
         starColor = Color(0xFF9FB6C9),
         blackStone = Color(0xFF10151C),
@@ -68,8 +65,7 @@ object ThemeRegistry {
         id = "ocean",
         nameKey = "theme_ocean",
         descKey = "theme_ocean_desc",
-        price = 0,
-        boardColor = Color(0xFF8FD3E8),
+                boardColor = Color(0xFF8FD3E8),
         gridColor = Color(0xFF1E5B6E),
         starColor = Color(0xFF1E5B6E),
         blackStone = Color(0xFF14212B),
@@ -88,7 +84,6 @@ object ThemeRegistry {
         id = "bamboo",
         nameKey = "theme_bamboo",
         descKey = "theme_bamboo_desc",
-        price = 200,
         boardColor = Color(0xFFC8E6A0),
         gridColor = Color(0xFF3E6B2F),
         starColor = Color(0xFF3E6B2F),
@@ -108,7 +103,6 @@ object ThemeRegistry {
         id = "mint",
         nameKey = "theme_mint",
         descKey = "theme_mint_desc",
-        price = 300,
         boardColor = Color(0xFF2E4B45),
         gridColor = Color(0xFFA8D8CB),
         starColor = Color(0xFFA8D8CB),
@@ -128,7 +122,6 @@ object ThemeRegistry {
         id = "rose",
         nameKey = "theme_rose",
         descKey = "theme_rose_desc",
-        price = 500,
         boardColor = Color(0xFFF2C6B4),
         gridColor = Color(0xFF8C3B2E),
         starColor = Color(0xFF8C3B2E),
@@ -146,10 +139,6 @@ object ThemeRegistry {
 
     val themes: List<BoardTheme> = listOf(WoodTheme, DarkTheme, BlueOcean, BambooTheme, MintTheme, RoseTheme)
 
-    val freeThemes: List<BoardTheme> = themes.filter { it.price == 0 }
 
     fun byId(id: String): BoardTheme = themes.find { it.id == id } ?: WoodTheme
-
-    fun isOwned(theme: BoardTheme, purchased: List<String>): Boolean =
-        theme.price == 0 || theme.id in purchased
 }
