@@ -5,6 +5,37 @@ All notable changes to Gomoku-NUSV are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-08-01
+
+### Added
+
+- **Multi-page app** — a proper navigation structure instead of a single board
+  screen: Home (title card, mode selection, entries), Game, Tic-Tac-Toe minigame,
+  Achievements, Stats, Titles, and Settings pages with fade transitions.
+- **Save encryption** — local saves are stored obfuscated with a rolling XOR
+  cipher and an integrity checksum, so editing the save file by hand no longer
+  works (legacy plain-text saves still load).
+- **Save export / import** — export copies a versioned JSON (with public checksum)
+  to the clipboard; import validates and restores it. Works across macOS and
+  Android, enabling cross-device save sync.
+- **Power-ups** — during a Gomoku game: a Hint power-up (AI recommends the best
+  move, highlighted on the board, once per game) and a +30 s time boost (twice
+  per game).
+- **Title system** — eight rank titles earned from stats (first win, 3-streak,
+  10/25/50 wins, 100 games, 10 Hard wins, Gomoku Master), shown on the Home page
+  and in a dedicated Titles page.
+- **Four new themes** — Violet Night, Maple Glow, Midnight Galaxy, and Ink Wash
+  (10 themes total).
+- **Detailed statistics** — total play time, fastest win, longest game, and theme
+  usage counts, in addition to win rate, streaks, and per-difficulty wins.
+- **Tic-Tac-Toe minigame** — play vs AI or two-player on the same screen, with its
+  own win counter.
+
+### Changed
+
+- All sci-fi effects are now permanently enabled (per-effect switches removed).
+- The app opens on a Home page instead of directly on the board.
+
 ## [1.2.0] - 2026-08-01
 
 ### Changed

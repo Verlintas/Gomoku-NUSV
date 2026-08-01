@@ -39,9 +39,19 @@ fun BoardView(
     hintStone: Stone?,
     boardVersion: Int,
     winningLine: List<Pair<Int, Int>>? = null,
+    hint: Position? = null,
     onCellTap: (row: Int, col: Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val hintPulse = remember { Animatable(0f) }
+    LaunchedEffect(hint) {
+        if (hint != null) {
+            while (true) {
+                hintPulse.snapTo(0f)
+                hintPulse.animateTo(1f, tween(700, easing = FastOutSlowInEasing))
+            }
+        }
+    }
     val version = boardVersion
     var hover by remember { mutableStateOf<Offset?>(null) }
     val dropScale = remember { Animatable(1f) }
@@ -141,6 +151,24 @@ fun BoardView(
                 radius = cell * 0.095f,
                 center = Offset(origin.x + it.col * cell, origin.y + it.row * cell)
             )
+        }
+
+        hint?.let { h ->
+            if (board.isEmpty(h.row, h.col)) {
+                val center = Offset(origin.x + h.col * cell, origin.y + h.row * cell)
+                val r = cell * 0.42f * (1f + hintPulse.value * 0.25f)
+                drawCircle(
+                    color = theme.accent.copy(alpha = 0.5f + 0.5f * hintPulse.value),
+                    radius = r,
+                    center = center,
+                    style = Stroke(width = cell * 0.08f)
+                )
+                drawCircle(
+                    color = theme.accent.copy(alpha = 0.18f),
+                    radius = r * 1.15f,
+                    center = center
+                )
+            }
         }
 
         winningLine?.let { line ->

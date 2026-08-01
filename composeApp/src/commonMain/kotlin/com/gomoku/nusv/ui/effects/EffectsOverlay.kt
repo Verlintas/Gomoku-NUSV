@@ -190,15 +190,14 @@ fun EffectsOverlay(
     theme: BoardTheme,
     lastMove: Position?,
     boardVersion: Int,
-    enabledEffects: List<String>,
     winningLine: List<Pair<Int, Int>>?,
     modifier: Modifier = Modifier
 ) {
     val engine = remember { ParticleEngine() }
-    val rippleOn = "ripple" in enabledEffects
-    val starfieldOn = "starfield" in enabledEffects
-    val hologramOn = "hologram" in enabledEffects
-    val neonOn = "neon" in enabledEffects
+    val rippleOn = true
+    val starfieldOn = true
+    val hologramOn = true
+    val neonOn = true
 
     var tick by remember { mutableLongStateOf(0L) }
     LaunchedEffect(Unit) {

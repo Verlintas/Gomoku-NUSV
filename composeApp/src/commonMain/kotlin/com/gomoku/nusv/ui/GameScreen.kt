@@ -66,15 +66,16 @@ import com.gomoku.nusv.ui.theme.BoardTheme
 import com.gomoku.nusv.ui.theme.ThemeRegistry
 
 @Composable
-fun GameScreen(
+fun GamePage(
     controller: GameController,
     theme: BoardTheme,
+    nav: com.gomoku.nusv.ui.nav.NavController,
     onThemeChange: (BoardTheme) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(color = theme.uiBackground, modifier = modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
-            Header(controller, theme)
+            Header(controller, theme, nav)
             BoxWithConstraints(Modifier.fillMaxSize().weight(1f)) {
                 if (maxWidth > 720.dp) {
                     Row(Modifier.fillMaxSize().padding(16.dp)) {
@@ -96,12 +97,10 @@ fun GameScreen(
     ResultDialog(controller, theme)
     ResignDialog(controller, theme)
     RestoreDialog(controller, theme)
-    AchievementsDialog(controller, theme)
-    StatsDialog(controller, theme)
 }
 
 @Composable
-private fun Header(controller: GameController, theme: BoardTheme) {
+private fun Header(controller: GameController, theme: BoardTheme, nav: com.gomoku.nusv.ui.nav.NavController? = null) {
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
@@ -110,6 +109,14 @@ private fun Header(controller: GameController, theme: BoardTheme) {
     ) {
         val compact = maxWidth < 560.dp
         Row(verticalAlignment = Alignment.CenterVertically) {
+            if (nav != null) {
+                OutlinedButton(
+                    onClick = { nav.back() },
+                    modifier = Modifier.padding(end = 12.dp)
+                ) {
+                    Text("←", fontSize = 14.sp)
+                }
+            }
             Column(Modifier.weight(1f)) {
                 Text(
                     "Gomoku-NUSV",
@@ -181,6 +188,7 @@ private fun BoardArea(controller: GameController, theme: BoardTheme, modifier: M
             hintStone = if (controller.isPlayerTurn) controller.currentStone else null,
             boardVersion = controller.boardVersion,
             winningLine = controller.winningLine,
+            hint = controller.aiHint,
             onCellTap = controller::handleTap,
             modifier = Modifier
                 .fillMaxSize()
@@ -191,7 +199,6 @@ private fun BoardArea(controller: GameController, theme: BoardTheme, modifier: M
             theme = theme,
             lastMove = controller.lastMove,
             boardVersion = controller.boardVersion,
-            enabledEffects = controller.profile.enabledEffects,
             winningLine = controller.winningLine,
             modifier = Modifier
                 .fillMaxSize()
@@ -324,6 +331,20 @@ private fun ControlPanel(
                     controller.restart()
                 }
             }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                ActionButton(
+                    I18n.t("powerup_hint") + if (controller.hintUsed) "✓" else "",
+                    enabled = !controller.hintUsed && !controller.aiThinking && controller.isPlayerTurn && !controller.status.isOver
+                ) {
+                    controller.useHint()
+                }
+                ActionButton(
+                    I18n.t("powerup_time") + " ${2 - controller.timeBoostUsed}",
+                    enabled = controller.timeBoostUsed < 2 && !controller.status.isOver && controller.isPlayerTurn
+                ) {
+                    controller.useTimeBoost()
+                }
+            }
 
             HorizontalDivider(color = theme.uiSurfaceVariant)
 
@@ -405,18 +426,11 @@ private fun ControlPanel(
             HorizontalDivider(color = theme.uiSurfaceVariant)
 
             Text(I18n.t("effects"), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = theme.textSecondary)
-            EffectRegistry.all.forEach { e ->
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(I18n.t(e.nameKey), fontSize = 13.sp, color = theme.textPrimary)
-                        Text(I18n.t(e.descKey), fontSize = 11.sp, color = theme.textSecondary)
-                    }
-                    Switch(
-                        checked = controller.isEffectEnabled(e),
-                        onCheckedChange = { controller.setEffectEnabled(e, it) }
-                    )
-                }
-            }
+            Text(
+                I18n.t("effects_always_on"),
+                fontSize = 11.sp,
+                color = theme.textSecondary
+            )
 
             HorizontalDivider(color = theme.uiSurfaceVariant)
 
@@ -653,68 +667,6 @@ private fun RestoreDialog(controller: GameController, theme: BoardTheme) {
         },
         dismissButton = {
             TextButton(onClick = controller::discardSavedGame) { Text(I18n.t("resume_discard")) }
-        }
-    )
-}
-
-@Composable
-private fun AchievementsDialog(controller: GameController, theme: BoardTheme) {
-    if (!controller.showAchievementsDialog) return
-    AlertDialog(
-        onDismissRequest = { controller.showAchievementsDialog = false },
-        containerColor = theme.uiSurface,
-        title = { Text(I18n.t("achievements"), color = theme.textPrimary, fontWeight = FontWeight.Bold) },
-        text = {
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Achievements.all.forEach { a ->
-                    val unlocked = a.id in controller.profile.achievements
-                    Card(
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (unlocked) Color(0xFFFFF8E1) else theme.uiBackground
-                        ),
-                        shape = RoundedCornerShape(10.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 12.dp, vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            Text(
-                                if (unlocked) "★" else "☆",
-                                fontSize = 16.sp,
-                                color = if (unlocked) Color(0xFFF0C94C) else theme.textSecondary
-                            )
-                            Column(Modifier.weight(1f)) {
-                                Text(
-                                    I18n.t(a.nameKey),
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = if (unlocked) theme.textPrimary else theme.textSecondary
-                                )
-                                Text(
-                                    I18n.t(a.descKey),
-                                    fontSize = 12.sp,
-                                    color = if (unlocked) theme.textSecondary else theme.textSecondary.copy(alpha = 0.6f)
-                                )
-                            }
-                            Text(
-                                if (unlocked) I18n.t("unlocked_short") else I18n.t("locked_short"),
-                                fontSize = 12.sp,
-                                color = if (unlocked) Color(0xFF8D6E00) else theme.textSecondary
-                            )
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = { controller.showAchievementsDialog = false }) { Text(I18n.t("close")) }
         }
     )
 }

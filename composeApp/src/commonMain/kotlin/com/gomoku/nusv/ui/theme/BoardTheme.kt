@@ -137,7 +137,86 @@ object ThemeRegistry {
         isDark = false
     )
 
-    val themes: List<BoardTheme> = listOf(WoodTheme, DarkTheme, BlueOcean, BambooTheme, MintTheme, RoseTheme)
+    private val VioletTheme = BoardTheme(
+        id = "violet",
+        nameKey = "theme_violet",
+        descKey = "theme_violet_desc",
+        boardColor = Color(0xFFC9B8E8),
+        gridColor = Color(0xFF4A3478),
+        starColor = Color(0xFF4A3478),
+        blackStone = Color(0xFF1D152E),
+        whiteStone = Color(0xFFF8F5FD),
+        lastMoveMark = Color(0xFFE040FB),
+        uiBackground = Color(0xFFF3EEFA),
+        uiSurface = Color(0xFFFFFFFF),
+        uiSurfaceVariant = Color(0xFFE6DCF5),
+        textPrimary = Color(0xFF34235C),
+        textSecondary = Color(0xFF7A6AA3),
+        accent = Color(0xFF9C27B0),
+        isDark = false
+    )
+
+    private val MapleTheme = BoardTheme(
+        id = "maple",
+        nameKey = "theme_maple",
+        descKey = "theme_maple_desc",
+        boardColor = Color(0xFFF0C896),
+        gridColor = Color(0xFF7A3B1E),
+        starColor = Color(0xFF7A3B1E),
+        blackStone = Color(0xFF2B150C),
+        whiteStone = Color(0xFFFDF6EE),
+        lastMoveMark = Color(0xFFC62828),
+        uiBackground = Color(0xFFFAF0E2),
+        uiSurface = Color(0xFFFFFFFF),
+        uiSurfaceVariant = Color(0xFFF3E0C4),
+        textPrimary = Color(0xFF5C2E14),
+        textSecondary = Color(0xFF9C6B44),
+        accent = Color(0xFFE65100),
+        isDark = false
+    )
+
+    private val MidnightTheme = BoardTheme(
+        id = "midnight",
+        nameKey = "theme_midnight",
+        descKey = "theme_midnight_desc",
+        boardColor = Color(0xFF1A1F35),
+        gridColor = Color(0xFF7C86B8),
+        starColor = Color(0xFF7C86B8),
+        blackStone = Color(0xFF0B0D18),
+        whiteStone = Color(0xFFE6E9F7),
+        lastMoveMark = Color(0xFFFF5252),
+        uiBackground = Color(0xFF0E1120),
+        uiSurface = Color(0xFF1A1F35),
+        uiSurfaceVariant = Color(0xFF252C4D),
+        textPrimary = Color(0xFFDDE2F8),
+        textSecondary = Color(0xFF8E96C4),
+        accent = Color(0xFF7986CB),
+        isDark = true
+    )
+
+    private val InkTheme = BoardTheme(
+        id = "ink",
+        nameKey = "theme_ink",
+        descKey = "theme_ink_desc",
+        boardColor = Color(0xFFEFEDE6),
+        gridColor = Color(0xFF2C2C2C),
+        starColor = Color(0xFF2C2C2C),
+        blackStone = Color(0xFF111111),
+        whiteStone = Color(0xFFFDFDFB),
+        lastMoveMark = Color(0xFFB71C1C),
+        uiBackground = Color(0xFFF7F5F0),
+        uiSurface = Color(0xFFFFFFFF),
+        uiSurfaceVariant = Color(0xFFE8E5DC),
+        textPrimary = Color(0xFF262626),
+        textSecondary = Color(0xFF737373),
+        accent = Color(0xFF424242),
+        isDark = false
+    )
+
+    val themes: List<BoardTheme> = listOf(
+        WoodTheme, DarkTheme, BlueOcean, BambooTheme, MintTheme, RoseTheme,
+        VioletTheme, MapleTheme, MidnightTheme, InkTheme
+    )
 
 
     fun byId(id: String): BoardTheme = themes.find { it.id == id } ?: WoodTheme

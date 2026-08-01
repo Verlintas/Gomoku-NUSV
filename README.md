@@ -25,15 +25,21 @@ dependencies.
 - **Statistics** — persistent profile tracking wins, losses, draws, win streak,
   and per-difficulty wins.
 - **Board sizes** — 13×13, 15×15, or 19×19.
-- **Color themes** — six fully unlocked themes (wood, deep space, ocean, bamboo,
-  mint, and rose) with the selection persisted.
+- **Color themes** — ten fully unlocked themes (wood, deep space, ocean, bamboo,
+  mint, rose, violet, maple, midnight, and ink) with the selection persisted.
 - **Polished board rendering** — gradient stones with highlights and shadows, drop-in
   animation for the last move, last-move marker, and hover preview.
 - **Sound effects** — synthesized on-device (no audio assets): place, win, draw, and
   timeout sounds.
-- **Sci-fi effects** — all four visual effects are free and individually toggleable:
-  energy ripples on moves, particle bursts, a hologram scan beam, and a neon
-  winning-line trail.
+- **Sci-fi effects** — all four visual effects are permanently enabled: energy
+  ripples on moves, particle bursts, a hologram scan beam, and a neon winning-line
+  trail.
+- **Power-ups** — a once-per-game AI hint (recommended move highlighted on the
+  board) and twice-per-game +30 s time boosts.
+- **Titles** — eight rank titles earned from your stats, displayed on the Home page.
+- **Minigame** — a Tic-Tac-Toe mode (vs AI or two-player) with its own win counter.
+- **Multi-page UI** — Home, Game, Minigame, Achievements, Stats, Titles, and
+  Settings pages with smooth transitions.
 - **Accessibility** — the board exposes a semantic click action for screen readers
   and automated UI testing.
 
@@ -137,10 +143,17 @@ profile is a one-file change per target.
 User data is stored via the multiplatform-settings library (SharedPreferences on
 Android, Preferences on the desktop JVM):
 
-- player profile (stats, streaks, unlocked achievements)
-- selected theme and enabled effects
+- player profile (stats, streaks, unlocked achievements) — stored with light
+  obfuscation and an integrity checksum to prevent manual save-file tampering
+- selected theme
 - game configuration (mode, difficulty, board size, timer, language)
 - the most recent unfinished game, restored on demand
+
+### Save export / import
+
+The Settings page can export the save as a versioned JSON document to the
+clipboard and import it back (checksum-verified). This works on both macOS and
+Android, so a save can be moved between devices.
 
 ## License
 

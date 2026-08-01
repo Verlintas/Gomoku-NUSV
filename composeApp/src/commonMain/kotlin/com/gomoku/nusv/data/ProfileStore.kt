@@ -8,6 +8,7 @@ import com.gomoku.nusv.model.Position
 import com.gomoku.nusv.model.Stone
 import com.russhwolf.settings.Settings
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -25,7 +26,12 @@ data class PlayerProfile(
     val achievements: List<String> = emptyList(),
     val winsByDifficulty: Map<String, Int> = emptyMap(),
     val purchasedEffects: List<String> = emptyList(),
-    val enabledEffects: List<String> = emptyList()
+    val enabledEffects: List<String> = emptyList(),
+    val totalTimeSec: Long = 0,
+    val fastestWinSec: Int = 0,
+    val longestGameMoves: Int = 0,
+    val themeUses: Map<String, Int> = emptyMap(),
+    val minigameWins: Int = 0
 )
 
 @Serializable
@@ -52,6 +58,16 @@ class ProfileStore(private val settings: Settings) {
     private val json = Json { ignoreUnknownKeys = true }
 
     fun loadProfile(): PlayerProfile {
+        val rawEnc = settings.getStringOrNull(KEY_PROFILE_ENC)
+        if (rawEnc != null) {
+            SaveCrypto.decrypt(rawEnc)?.let { raw ->
+                return try {
+                    json.decodeFromString<PlayerProfile>(raw)
+                } catch (_: Exception) {
+                    PlayerProfile()
+                }
+            }
+        }
         val raw = settings.getStringOrNull(KEY_PROFILE) ?: return PlayerProfile()
         return try {
             json.decodeFromString<PlayerProfile>(raw)
@@ -61,8 +77,36 @@ class ProfileStore(private val settings: Settings) {
     }
 
     fun saveProfile(profile: PlayerProfile) {
-        settings.putString(KEY_PROFILE, json.encodeToString(profile))
+        settings.putString(KEY_PROFILE_ENC, SaveCrypto.encrypt(json.encodeToString(profile)))
     }
+
+    fun exportProfileJson(): String {
+        val payload = json.encodeToString(loadProfile())
+        return """{"v":1,"profile":$payload,"check":"${SaveCrypto.publicChecksum(payload)}"}"""
+    }
+
+    fun importProfileJson(text: String): Boolean {
+        val trimmed = text.trim()
+        if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) return false
+        val data = try {
+            json.decodeFromString<ExportData>(trimmed)
+        } catch (_: Exception) {
+            return false
+        }
+        if (data.v != 1) return false
+        val payload = json.encodeToString(data.profile)
+        if (!SaveCrypto.publicChecksum(payload).equals(data.check.trim().uppercase(), ignoreCase = true)) return false
+        val profile = try {
+            json.decodeFromString<PlayerProfile>(payload)
+        } catch (_: Exception) {
+            return false
+        }
+        saveProfile(profile)
+        return true
+    }
+
+    @Serializable
+    private data class ExportData(val v: Int, val profile: JsonObject, val check: String)
 
     fun loadThemeId(): String = settings.getString(KEY_THEME, "wood")
 
@@ -119,6 +163,7 @@ class ProfileStore(private val settings: Settings) {
 
     companion object {
         private const val KEY_PROFILE = "profile"
+        private const val KEY_PROFILE_ENC = "profile_enc"
         private const val KEY_THEME = "theme_id"
         private const val KEY_BOARD_SIZE = "board_size"
         private const val KEY_MODE = "mode"

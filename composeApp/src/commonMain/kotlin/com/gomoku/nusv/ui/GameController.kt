@@ -57,6 +57,11 @@ class GameController(
     var winningLine by mutableStateOf<List<Pair<Int, Int>>?>(null)
     var newlyUnlocked by mutableStateOf<List<Achievement>>(emptyList())
     var showAchievementToast by mutableStateOf(false)
+    var aiHint by mutableStateOf<Position?>(null)
+    var hintUsed by mutableStateOf(false)
+    var timeBoostUsed by mutableIntStateOf(0)
+    var themeIdAtStart by mutableStateOf("")
+    private var activeThemeId: String = ""
     var showAchievementsDialog by mutableStateOf(false)
     var showStatsDialog by mutableStateOf(false)
 
@@ -87,6 +92,7 @@ class GameController(
     }
 
     private fun place(row: Int, col: Int) {
+        aiHint = null
         board.set(row, col, currentStone)
         val move = Move(Position(row, col), currentStone)
         moveHistory = moveHistory + move
@@ -116,6 +122,18 @@ class GameController(
         winningLine = lastMove?.let { WinChecker.winningLine(board, it.row, it.col, Stone.BLACK) }
         val difficulty = if (isVsAi) config.difficulty else null
         profile = ScoreService.apply(profile, finalStatus, difficulty)
+        if (playerWon && (profile.fastestWinSec == 0 || totalSeconds < profile.fastestWinSec)) {
+            profile = profile.copy(fastestWinSec = totalSeconds)
+        }
+        profile = profile.copy(
+            totalTimeSec = profile.totalTimeSec + totalSeconds,
+            longestGameMoves = maxOf(profile.longestGameMoves, moveHistory.size)
+        )
+        if (themeIdAtStart.isNotBlank()) {
+            val uses = profile.themeUses.toMutableMap()
+            uses[themeIdAtStart] = (uses[themeIdAtStart] ?: 0) + 1
+            profile = profile.copy(themeUses = uses)
+        }
         val unlocked = Achievements.newlyUnlocked(profile, playerWon && isVsAi, difficulty)
         if (unlocked.isNotEmpty()) {
             profile = profile.copy(
@@ -191,6 +209,10 @@ class GameController(
         winningLine = null
         newlyUnlocked = emptyList()
         showAchievementToast = false
+        aiHint = null
+        hintUsed = false
+        timeBoostUsed = 0
+        themeIdAtStart = activeThemeId
         boardVersion++
         store.saveSavedGame(null)
         if (isVsAi && playerColor != Stone.BLACK) scheduleAiMove()
@@ -227,6 +249,9 @@ class GameController(
         turnSecondsLeft = config.secondsPerMove
         totalSeconds = 0
         boardVersion++
+        aiHint = null
+        hintUsed = false
+        timeBoostUsed = 0
         pendingSavedGame = null
         restoreRequested = false
         if (isVsAi && currentStone != playerColor) scheduleAiMove()
@@ -280,6 +305,54 @@ class GameController(
         if (!enabled) current.remove(effect.id)
         profile = profile.copy(enabledEffects = current)
         store.saveProfile(profile)
+    }
+
+    // ---------- 道具 ----------
+
+    fun useHint() {
+        if (hintUsed || status.isOver || aiThinking) return
+        if (isVsAi && currentStone != playerColor) return
+        hintUsed = true
+        aiThinking = true
+        aiHint = null
+        aiJob?.cancel()
+        aiJob = scope.launch {
+            val hint = withContext(Dispatchers.Default) {
+                val workBoard = Board(board.size)
+                workBoard.copyFrom(board)
+                GomokuAI.bestMove(workBoard, currentStone, config.difficulty).position
+            }
+            aiThinking = false
+            if (status == GameStatus.PLAYING) aiHint = hint
+        }
+    }
+
+    fun useTimeBoost() {
+        if (timeBoostUsed >= 2 || status.isOver) return
+        if (isVsAi && currentStone != playerColor) return
+        timeBoostUsed++
+        turnSecondsLeft += 30
+    }
+
+    // ---------- 主题记录 / 小游戏 ----------
+
+    fun onThemeSelected(themeId: String) {
+        activeThemeId = themeId
+    }
+
+    fun onMinigameWin() {
+        profile = profile.copy(minigameWins = profile.minigameWins + 1)
+        store.saveProfile(profile)
+    }
+
+    // ---------- 存档导出 / 导入 ----------
+
+    fun exportSave(): String = store.exportProfileJson()
+
+    fun importSave(text: String): Boolean {
+        if (!store.importProfileJson(text)) return false
+        profile = store.loadProfile()
+        return true
     }
 
     // ---------- 语言 ----------
