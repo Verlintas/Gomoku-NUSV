@@ -11,6 +11,7 @@ enum class Page(val titleKey: String) {
     ACHIEVEMENTS("nav_achievements"),
     STATS("nav_stats"),
     TITLES("nav_titles"),
+    STORE("nav_store"),
     SETTINGS("nav_settings")
 }
 

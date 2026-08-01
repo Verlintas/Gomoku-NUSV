@@ -6,7 +6,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.gomoku.nusv.data.Achievement
 import com.gomoku.nusv.data.Achievements
+import com.gomoku.nusv.data.DailyTaskSystem
+import com.gomoku.nusv.data.Decoration
+import com.gomoku.nusv.data.DecorationRegistry
+import com.gomoku.nusv.data.DecorationType
 import com.gomoku.nusv.data.ProfileStore
+import com.gomoku.nusv.data.ScoreRules
+import com.gomoku.nusv.data.SignInSystem
+import com.gomoku.nusv.data.TaskType
+import com.gomoku.nusv.todayStr
 import com.gomoku.nusv.data.SavedGame
 import com.gomoku.nusv.data.ScoreService
 import com.gomoku.nusv.logic.GomokuAI
@@ -57,6 +65,7 @@ class GameController(
     var winningLine by mutableStateOf<List<Pair<Int, Int>>?>(null)
     var newlyUnlocked by mutableStateOf<List<Achievement>>(emptyList())
     var showAchievementToast by mutableStateOf(false)
+    var effectsEnabled by mutableStateOf(true)
     var aiHint by mutableStateOf<Position?>(null)
     var hintUsed by mutableStateOf(false)
     var timeBoostUsed by mutableIntStateOf(0)
@@ -74,6 +83,8 @@ class GameController(
     init {
         pendingSavedGame = store.loadSavedGame()
         restoreRequested = pendingSavedGame != null
+        profile = DailyTaskSystem.rollTasks(profile)
+        store.saveProfile(profile)
     }
 
     val isPlayerTurn: Boolean
@@ -143,6 +154,18 @@ class GameController(
             val uses = profile.themeUses.toMutableMap()
             uses[themeIdAtStart] = (uses[themeIdAtStart] ?: 0) + 1
             profile = profile.copy(themeUses = uses)
+        }
+        val points = ScoreRules.gamePoints(playerWon, isDraw, profile.winStreak)
+        profile = profile.copy(score = profile.score + points)
+        val (taskProfile, taskReward) = DailyTaskSystem.onEvent(profile, TaskType.PLAY_GAME)
+        profile = taskProfile.copy(score = taskProfile.score + taskReward)
+        if (playerWon) {
+            val (tp2, r2) = DailyTaskSystem.onEvent(profile, TaskType.WIN_GAME)
+            profile = tp2.copy(score = tp2.score + r2)
+            if (isVsAi) {
+                val (tp3, r3) = DailyTaskSystem.onEvent(profile, TaskType.WIN_VS_AI)
+                profile = tp3.copy(score = tp3.score + r3)
+            }
         }
         val unlocked = Achievements.newlyUnlocked(profile, playerWon && isVsAi, difficulty)
         if (unlocked.isNotEmpty()) {
@@ -329,6 +352,8 @@ class GameController(
         hintUsed = true
         aiThinking = true
         aiHint = null
+        val (tp, r) = DailyTaskSystem.onEvent(profile, TaskType.USE_POWERUP)
+        profile = tp.copy(score = tp.score + r)
         aiJob?.cancel()
         aiJob = scope.launch {
             val hint = withContext(Dispatchers.Default) {
@@ -346,6 +371,8 @@ class GameController(
         if (isVsAi && currentStone != playerColor) return
         timeBoostUsed++
         turnSecondsLeft += 30
+        val (tp, r) = DailyTaskSystem.onEvent(profile, TaskType.USE_POWERUP)
+        profile = tp.copy(score = tp.score + r)
     }
 
     // ---------- 主题记录 / 小游戏 ----------
@@ -367,6 +394,41 @@ class GameController(
         if (!store.importProfileJson(text)) return false
         profile = store.loadProfile()
         return true
+    }
+
+    // ---------- 签到 / 装饰 ----------
+
+    fun signIn(): Boolean {
+        val (updated, ok) = SignInSystem.signIn(profile)
+        if (ok) {
+            profile = updated
+            store.saveProfile(profile)
+        }
+        return ok
+    }
+
+    fun purchaseDecoration(decoration: Decoration): Boolean {
+        if (DecorationRegistry.isOwned(profile, decoration.id)) return true
+        if (profile.score < decoration.price) return false
+        profile = profile.copy(
+            score = profile.score - decoration.price,
+            purchasedDecorations = (profile.purchasedDecorations + decoration.id).distinct()
+        )
+        store.saveProfile(profile)
+        return true
+    }
+
+    fun selectDecoration(id: String, type: DecorationType) {
+        profile = when (type) {
+            DecorationType.EFFECT_COLOR -> profile.copy(selectedEffectColor = id)
+            DecorationType.GLOW -> profile.copy(selectedGlow = id)
+            DecorationType.WIN_LINE -> profile.copy(selectedWinLine = id)
+        }
+        store.saveProfile(profile)
+    }
+
+    fun setEffectsEnabledFlag(enabled: Boolean) {
+        effectsEnabled = enabled
     }
 
     // ---------- 语言 ----------

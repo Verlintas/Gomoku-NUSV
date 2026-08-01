@@ -31,7 +31,19 @@ data class PlayerProfile(
     val fastestWinSec: Int = 0,
     val longestGameMoves: Int = 0,
     val themeUses: Map<String, Int> = emptyMap(),
-    val minigameWins: Int = 0
+    val minigameWins: Int = 0,
+    val signInDate: String = "",
+    val signInStreak: Int = 0,
+    val totalSignIns: Int = 0,
+    val taskDate: String = "",
+    val taskIds: List<String> = emptyList(),
+    val taskProgress: List<Int> = emptyList(),
+    val taskDone: List<Boolean> = emptyList(),
+    val dailyTaskCompletions: Int = 0,
+    val purchasedDecorations: List<String> = emptyList(),
+    val selectedEffectColor: String = "default",
+    val selectedGlow: String = "none",
+    val selectedWinLine: String = "default"
 )
 
 @Serializable

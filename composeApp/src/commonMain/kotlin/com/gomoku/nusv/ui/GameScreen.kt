@@ -205,6 +205,10 @@ private fun BoardArea(controller: GameController, theme: BoardTheme, modifier: M
             boardVersion = controller.boardVersion,
             winningLine = controller.winningLine,
             hint = controller.aiHint,
+            glowColor = com.gomoku.nusv.data.DecorationRegistry.glowColor(controller.profile)
+                ?.let { androidx.compose.ui.graphics.Color(it) },
+            winLineColors = com.gomoku.nusv.data.DecorationRegistry.winLineColors(controller.profile)
+                ?.let { androidx.compose.ui.graphics.Color(it.first) to androidx.compose.ui.graphics.Color(it.second) },
             onCellTap = controller::handleTap,
             modifier = Modifier
                 .fillMaxSize()
@@ -216,6 +220,9 @@ private fun BoardArea(controller: GameController, theme: BoardTheme, modifier: M
             lastMove = controller.lastMove,
             boardVersion = controller.boardVersion,
             winningLine = controller.winningLine,
+            enabled = controller.effectsEnabled,
+            effectColors = com.gomoku.nusv.data.DecorationRegistry.effectColors(controller.profile)
+                .map { androidx.compose.ui.graphics.Color(it) },
             modifier = Modifier
                 .fillMaxSize()
                 .padding(8.dp)

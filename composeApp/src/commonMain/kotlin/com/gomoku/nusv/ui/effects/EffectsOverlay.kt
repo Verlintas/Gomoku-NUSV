@@ -191,13 +191,17 @@ fun EffectsOverlay(
     lastMove: Position?,
     boardVersion: Int,
     winningLine: List<Pair<Int, Int>>?,
+    enabled: Boolean = true,
+    effectColors: List<Color> = emptyList(),
     modifier: Modifier = Modifier
 ) {
     val engine = remember { ParticleEngine() }
-    val rippleOn = true
-    val starfieldOn = true
-    val hologramOn = true
-    val neonOn = true
+    val rippleOn = enabled
+    val starfieldOn = enabled
+    val hologramOn = enabled
+    val neonOn = enabled
+    val palette = if (effectColors.isNotEmpty()) effectColors
+        else listOf(theme.accent, Color.White, Color(0xFF7FE7FF))
 
     var tick by remember { mutableLongStateOf(0L) }
     LaunchedEffect(Unit) {
@@ -223,7 +227,7 @@ fun EffectsOverlay(
                 if (starfieldOn) {
                     engine.burst(
                         c.x, c.y,
-                        colors = listOf(theme.accent, Color.White, Color(0xFF7FE7FF)),
+                        colors = palette,
                         count = 42,
                         speed = 240f
                     )
@@ -236,7 +240,7 @@ fun EffectsOverlay(
                 engine.burstAlongLine(
                     start = layout.center(winningLine.first().first, winningLine.first().second),
                     end = layout.center(winningLine.last().first, winningLine.last().second),
-                    colors = listOf(theme.accent, Color.White, Color(0xFFFFD54F)),
+                    colors = palette,
                     count = 110,
                     speed = 300f
                 )

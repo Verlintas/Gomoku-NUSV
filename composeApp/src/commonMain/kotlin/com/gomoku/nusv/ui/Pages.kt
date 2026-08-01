@@ -239,6 +239,10 @@ fun StatsPage(controller: GameController, theme: BoardTheme, nav: NavController)
                     StatsRow(I18n.t("fastest_win"), if (p.fastestWinSec > 0) formatClockLocal(p.fastestWinSec) else "—", theme)
                     StatsRow(I18n.t("longest_game"), if (p.longestGameMoves > 0) "${p.longestGameMoves} ${I18n.t("move_count")}" else "—", theme)
                     StatsRow(I18n.t("minigame_wins"), "${p.minigameWins}", theme)
+                    StatsRow(I18n.t("score"), "${p.score}", theme)
+                    StatsRow(I18n.t("signin_total"), "${p.totalSignIns}", theme)
+                    StatsRow(I18n.t("signin_streak"), "${p.signInStreak}", theme)
+                    StatsRow(I18n.t("daily_tasks_done"), "${p.dailyTaskCompletions}", theme)
                 }
             }
             HorizontalDivider(color = theme.uiSurfaceVariant)
@@ -381,43 +385,63 @@ fun SettingsPage(
 
                     HorizontalDivider(color = theme.uiSurfaceVariant)
 
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(I18n.t("effects_master"), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = theme.textSecondary)
+                            Text(I18n.t("effects_master_desc"), fontSize = 11.sp, color = theme.textSecondary)
+                        }
+                        androidx.compose.material3.Switch(
+                            checked = controller.effectsEnabled,
+                            onCheckedChange = { controller.setEffectsEnabledFlag(it) }
+                        )
+                    }
+
+                    OutlinedButton(
+                        onClick = { nav.navigate(com.gomoku.nusv.ui.nav.Page.STORE) },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(I18n.t("nav_store"), fontSize = 13.sp)
+                    }
+
+                    HorizontalDivider(color = theme.uiSurfaceVariant)
+
                     Text(I18n.t("settings_theme"), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = theme.textSecondary)
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        ThemeRegistry.themes.chunked(2).forEach { rowThemes ->
-                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                rowThemes.forEach { t ->
-                                    Card(
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .clickable { onThemeChange(t) },
-                                        colors = CardDefaults.cardColors(
-                                            containerColor = if (t.id == theme.id) theme.uiSurfaceVariant else theme.uiBackground
-                                        ),
-                                        shape = RoundedCornerShape(10.dp),
-                                        border = BorderStroke(
-                                            1.dp,
-                                            if (t.id == theme.id) theme.accent else theme.uiSurfaceVariant
+                    @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+                    androidx.compose.foundation.layout.FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        ThemeRegistry.themes.forEach { t ->
+                            Card(
+                                modifier = Modifier
+                                    .width(190.dp)
+                                    .clickable { onThemeChange(t) },
+                                colors = CardDefaults.cardColors(
+                                    containerColor = if (t.id == theme.id) theme.uiSurfaceVariant else theme.uiBackground
+                                ),
+                                shape = RoundedCornerShape(10.dp),
+                                border = BorderStroke(
+                                    1.dp,
+                                    if (t.id == theme.id) theme.accent else theme.uiSurfaceVariant
+                                )
+                            ) {
+                                Column(modifier = Modifier.padding(10.dp)) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Box(
+                                            modifier = Modifier
+                                                .width(16.dp)
+                                                .height(16.dp)
+                                                .clip(CircleShape)
+                                                .background(t.boardColor)
+                                                .border(1.dp, t.gridColor, CircleShape)
                                         )
-                                    ) {
-                                        Column(modifier = Modifier.padding(10.dp)) {
-                                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                                Box(
-                                                    modifier = Modifier
-                                                        .width(16.dp)
-                                                        .height(16.dp)
-                                                        .clip(CircleShape)
-                                                        .background(t.boardColor)
-                                                        .border(1.dp, t.gridColor, CircleShape)
-                                                )
-                                                Spacer(Modifier.width(8.dp))
-                                                Text(
-                                                    I18n.t(t.nameKey),
-                                                    fontSize = 13.sp,
-                                                    fontWeight = if (t.id == theme.id) FontWeight.Bold else FontWeight.Normal,
-                                                    color = theme.textPrimary
-                                                )
-                                            }
-                                        }
+                                        Spacer(Modifier.width(8.dp))
+                                        Text(
+                                            I18n.t(t.nameKey),
+                                            fontSize = 13.sp,
+                                            fontWeight = if (t.id == theme.id) FontWeight.Bold else FontWeight.Normal,
+                                            color = theme.textPrimary
+                                        )
                                     }
                                 }
                             }

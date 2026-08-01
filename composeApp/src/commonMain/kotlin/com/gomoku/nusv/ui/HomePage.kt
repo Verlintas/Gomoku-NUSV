@@ -32,7 +32,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.gomoku.nusv.data.DailyTaskSystem
 import com.gomoku.nusv.data.Titles
+import com.gomoku.nusv.data.TaskType
 import com.gomoku.nusv.i18n.I18n
 import com.gomoku.nusv.model.GameMode
 import com.gomoku.nusv.ui.nav.NavController
@@ -47,6 +49,8 @@ fun HomePage(
     onThemeChange: (BoardTheme) -> Unit
 ) {
     Surface(color = theme.uiBackground, modifier = Modifier.fillMaxSize()) {
+        androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize()) {
+        val cardWidth = if (maxWidth > 560.dp) 0.72f else 0.95f
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -115,6 +119,9 @@ fun HomePage(
                 color = theme.textSecondary
             )
 
+            ScoreAndSignInCard(controller, theme)
+            DailyTaskCard(controller, theme)
+
             Spacer(Modifier.height(4.dp))
 
             ModeCard(
@@ -124,7 +131,8 @@ fun HomePage(
                     controller.setMode(GameMode.VS_AI)
                     nav.navigate(Page.GAME)
                 },
-                theme = theme
+                theme = theme,
+                widthFactor = cardWidth
             )
             ModeCard(
                 title = I18n.t("mode_pvp"),
@@ -133,18 +141,23 @@ fun HomePage(
                     controller.setMode(GameMode.PVP)
                     nav.navigate(Page.GAME)
                 },
-                theme = theme
+                theme = theme,
+                widthFactor = cardWidth
             )
             ModeCard(
                 title = I18n.t("nav_minigame"),
                 subtitle = I18n.t("home_minigame_desc"),
                 onClick = { nav.navigate(Page.TICTACTOE) },
-                theme = theme
+                theme = theme,
+                widthFactor = cardWidth
             )
 
             Spacer(Modifier.height(4.dp))
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedButton(onClick = { nav.navigate(Page.STORE) }) {
+                    Text(I18n.t("nav_store"), fontSize = 14.sp)
+                }
                 OutlinedButton(onClick = { nav.navigate(Page.ACHIEVEMENTS) }) {
                     Text(I18n.t("nav_achievements"), fontSize = 14.sp)
                 }
@@ -157,19 +170,26 @@ fun HomePage(
             }
             OutlinedButton(
                 onClick = { nav.navigate(Page.SETTINGS) },
-                modifier = Modifier.fillMaxWidth(0.5f)
+                modifier = Modifier.fillMaxWidth(cardWidth)
             ) {
                 Text(I18n.t("nav_settings"), fontSize = 14.sp)
             }
+        }
         }
     }
 }
 
 @Composable
-private fun ModeCard(title: String, subtitle: String, onClick: () -> Unit, theme: BoardTheme) {
+private fun ModeCard(
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+    theme: BoardTheme,
+    widthFactor: Float = 0.72f
+) {
     Card(
         modifier = Modifier
-            .fillMaxWidth(0.72f)
+            .fillMaxWidth(widthFactor)
             .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(containerColor = theme.uiSurface),
         shape = RoundedCornerShape(16.dp),
@@ -181,3 +201,113 @@ private fun ModeCard(title: String, subtitle: String, onClick: () -> Unit, theme
         }
     }
 }
+
+@Composable
+private fun ScoreAndSignInCard(controller: GameController, theme: BoardTheme) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = theme.uiSurface),
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, theme.accent.copy(alpha = 0.35f))
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 18.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(
+                    I18n.t("score"),
+                    fontSize = 11.sp,
+                    color = theme.textSecondary
+                )
+                Text(
+                    "${controller.profile.score}",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = theme.accent
+                )
+            }
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    I18n.t("signin_streak") + " ${controller.profile.signInStreak}",
+                    fontSize = 12.sp,
+                    color = theme.textSecondary
+                )
+                Text(
+                    I18n.t("signin_total") + " ${controller.profile.totalSignIns}",
+                    fontSize = 11.sp,
+                    color = theme.textSecondary
+                )
+            }
+            Spacer(Modifier.width(14.dp))
+            val signedToday = controller.profile.signInDate == com.gomoku.nusv.todayStr()
+            Button(
+                onClick = { controller.signIn() },
+                enabled = !signedToday
+            ) {
+                Text(
+                    if (signedToday) I18n.t("signin_done") else I18n.t("signin"),
+                    fontSize = 13.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DailyTaskCard(controller: GameController, theme: BoardTheme) {
+    val tasks = DailyTaskSystem.tasksForToday(controller.profile)
+    Card(
+        colors = CardDefaults.cardColors(containerColor = theme.uiSurface),
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, theme.uiSurfaceVariant)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 18.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(
+                I18n.t("daily_tasks"),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = theme.textPrimary
+            )
+            tasks.forEach { task ->
+                val progress = DailyTaskSystem.progressOf(task.type, controller.profile)
+                val done = progress >= task.target
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        if (done) "★" else "☆",
+                        fontSize = 14.sp,
+                        color = if (done) theme.accent else theme.textSecondary
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        taskName(task.type) + " ${progress}/${task.target}",
+                        fontSize = 13.sp,
+                        color = if (done) theme.textSecondary else theme.textPrimary,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text(
+                        "+${task.reward}",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (done) theme.accent else theme.textSecondary
+                    )
+                }
+            }
+            if (tasks.isEmpty()) {
+                Text(
+                    I18n.t("daily_tasks_empty"),
+                    fontSize = 12.sp,
+                    color = theme.textSecondary
+                )
+            }
+        }
+    }
+}
+
+private fun taskName(type: TaskType): String = I18n.t(type.key)

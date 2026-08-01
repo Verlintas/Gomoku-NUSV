@@ -40,6 +40,8 @@ fun BoardView(
     boardVersion: Int,
     winningLine: List<Pair<Int, Int>>? = null,
     hint: Position? = null,
+    glowColor: Color? = null,
+    winLineColors: Pair<Color, Color>? = null,
     onCellTap: (row: Int, col: Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -142,7 +144,7 @@ fun BoardView(
             val c = i % board.size
             val center = Offset(origin.x + c * cell, origin.y + r * cell)
             val scale = if (i == lastIndex) dropScale.value else 1f
-            drawStone(center, cell, Stone.fromId(id) ?: continue, theme, scale)
+            drawStone(center, cell, Stone.fromId(id) ?: continue, theme, scale, glowColor)
         }
 
         lastMove?.let {
@@ -175,9 +177,10 @@ fun BoardView(
             if (line.size >= 2) {
                 val start = Offset(origin.x + line.first().second * cell, origin.y + line.first().first * cell)
                 val end = Offset(origin.x + line.last().second * cell, origin.y + line.last().first * cell)
+                val linePair = winLineColors ?: (theme.accent to theme.lastMoveMark)
                 drawLine(
                     brush = Brush.linearGradient(
-                        listOf(theme.accent.copy(alpha = 0.9f), theme.lastMoveMark.copy(alpha = 0.9f))
+                        listOf(linePair.first.copy(alpha = 0.9f), linePair.second.copy(alpha = 0.9f))
                     ),
                     start = start,
                     end = end,
@@ -212,9 +215,28 @@ fun BoardView(
     }
 }
 
-private fun DrawScope.drawStone(center: Offset, cell: Float, stone: Stone, theme: BoardTheme, scale: Float) {
+private fun DrawScope.drawStone(
+    center: Offset,
+    cell: Float,
+    stone: Stone,
+    theme: BoardTheme,
+    scale: Float,
+    glowColor: Color?
+) {
     val radius = cell * 0.42f * scale
     if (radius <= 0f) return
+    glowColor?.let { glow ->
+        drawCircle(
+            color = glow.copy(alpha = 0.35f),
+            radius = radius * 1.45f,
+            center = center
+        )
+        drawCircle(
+            color = glow.copy(alpha = 0.18f),
+            radius = radius * 1.9f,
+            center = center
+        )
+    }
     drawCircle(
         color = Color.Black.copy(alpha = 0.25f),
         radius = radius,

@@ -5,6 +5,29 @@ All notable changes to Gomoku-NUSV are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-08-01
+
+### Added
+
+- **Points economy (engagement)** — every game now awards points (win +100 with
+  streak bonuses, draw +30, loss +10) that are spent in the decoration shop.
+- **Daily sign-in** — sign in every day for a growing streak bonus (50 base,
+  +10 per consecutive day, capped at 10), with streak and total counters.
+- **Daily tasks** — three random tasks per day (play a game, win a game, win vs
+  AI, use a power-up) with point rewards; progress is tracked and persisted.
+- **Decoration shop** — spend points on cosmetic upgrades that do not affect
+  gameplay: effect particle colors (golden / amethyst), stone glow (golden /
+  azure), and a dual-neon win line. Purchases and equipped choices persist and
+  sync via save export/import.
+- **Effects master switch** — a single toggle in Settings turns all board
+  effects on or off.
+- Stats page now shows points, sign-in totals/streak, and completed daily tasks.
+
+### Changed
+
+- Settings theme grid now flows automatically (1-3 columns) on any screen width.
+- Home page cards and mode buttons adapt to narrow screens.
+
 ## [1.3.2] - 2026-08-01
 
 ### Fixed
