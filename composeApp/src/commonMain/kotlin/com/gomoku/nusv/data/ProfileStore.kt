@@ -6,6 +6,7 @@ import com.gomoku.nusv.model.GameMode
 import com.gomoku.nusv.model.Move
 import com.gomoku.nusv.model.Position
 import com.gomoku.nusv.model.Stone
+import com.gomoku.nusv.ui.effects.EffectRegistry
 import com.russhwolf.settings.Settings
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -14,12 +15,18 @@ import kotlinx.serialization.json.Json
 @Serializable
 data class PlayerProfile(
     val score: Int = 0,
+    val coins: Int = 0,
     val wins: Int = 0,
     val losses: Int = 0,
     val draws: Int = 0,
     val winStreak: Int = 0,
     val bestWinStreak: Int = 0,
-    val gamesPlayed: Int = 0
+    val gamesPlayed: Int = 0,
+    val purchasedThemes: List<String> = emptyList(),
+    val achievements: List<String> = emptyList(),
+    val winsByDifficulty: Map<String, Int> = emptyMap(),
+    val purchasedEffects: List<String> = emptyList(),
+    val enabledEffects: List<String> = emptyList()
 )
 
 @Serializable
@@ -46,13 +53,23 @@ class ProfileStore(private val settings: Settings) {
     private val json = Json { ignoreUnknownKeys = true }
 
     fun loadProfile(): PlayerProfile {
-        val raw = settings.getStringOrNull(KEY_PROFILE) ?: return PlayerProfile()
+        val raw = settings.getStringOrNull(KEY_PROFILE) ?: return PlayerProfile().withFreeEffects()
         return try {
-            json.decodeFromString<PlayerProfile>(raw)
+            val profile = json.decodeFromString<PlayerProfile>(raw)
+            if (profile.purchasedEffects.isEmpty() && profile.enabledEffects.isEmpty()) {
+                val migrated = profile.withFreeEffects()
+                saveProfile(migrated)
+                migrated
+            } else {
+                profile
+            }
         } catch (_: Exception) {
-            PlayerProfile()
+            PlayerProfile().withFreeEffects()
         }
     }
+
+    private fun PlayerProfile.withFreeEffects(): PlayerProfile =
+        if (enabledEffects.isEmpty()) copy(enabledEffects = EffectRegistry.freeEffects) else this
 
     fun saveProfile(profile: PlayerProfile) {
         settings.putString(KEY_PROFILE, json.encodeToString(profile))
@@ -62,6 +79,12 @@ class ProfileStore(private val settings: Settings) {
 
     fun saveThemeId(id: String) {
         settings.putString(KEY_THEME, id)
+    }
+
+    fun loadLanguage(): String = settings.getString(KEY_LANGUAGE, "zh")
+
+    fun saveLanguage(code: String) {
+        settings.putString(KEY_LANGUAGE, code)
     }
 
     fun loadConfig(): GameConfig {
@@ -114,5 +137,6 @@ class ProfileStore(private val settings: Settings) {
         private const val KEY_TIMER = "timer_enabled"
         private const val KEY_SECONDS = "seconds_per_move"
         private const val KEY_SAVED_GAME = "saved_game"
+        private const val KEY_LANGUAGE = "language"
     }
 }

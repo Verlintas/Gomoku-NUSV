@@ -4,7 +4,9 @@ import androidx.compose.ui.graphics.Color
 
 data class BoardTheme(
     val id: String,
-    val name: String,
+    val nameKey: String,
+    val descKey: String,
+    val price: Int,
     val boardColor: Color,
     val gridColor: Color,
     val starColor: Color,
@@ -24,7 +26,9 @@ object ThemeRegistry {
 
     private val WoodTheme = BoardTheme(
         id = "wood",
-        name = "木色经典",
+        nameKey = "theme_wood",
+        descKey = "theme_wood_desc",
+        price = 0,
         boardColor = Color(0xFFE8C97E),
         gridColor = Color(0xFF6B4F2A),
         starColor = Color(0xFF6B4F2A),
@@ -42,7 +46,9 @@ object ThemeRegistry {
 
     val DarkTheme = BoardTheme(
         id = "dark",
-        name = "深空幽蓝",
+        nameKey = "theme_dark",
+        descKey = "theme_dark_desc",
+        price = 0,
         boardColor = Color(0xFF2B3A4A),
         gridColor = Color(0xFF9FB6C9),
         starColor = Color(0xFF9FB6C9),
@@ -60,7 +66,9 @@ object ThemeRegistry {
 
     val BlueOcean = BoardTheme(
         id = "ocean",
-        name = "碧海青天",
+        nameKey = "theme_ocean",
+        descKey = "theme_ocean_desc",
+        price = 0,
         boardColor = Color(0xFF8FD3E8),
         gridColor = Color(0xFF1E5B6E),
         starColor = Color(0xFF1E5B6E),
@@ -76,7 +84,72 @@ object ThemeRegistry {
         isDark = false
     )
 
-    val themes: List<BoardTheme> = listOf(WoodTheme, DarkTheme, BlueOcean)
+    private val BambooTheme = BoardTheme(
+        id = "bamboo",
+        nameKey = "theme_bamboo",
+        descKey = "theme_bamboo_desc",
+        price = 200,
+        boardColor = Color(0xFFC8E6A0),
+        gridColor = Color(0xFF3E6B2F),
+        starColor = Color(0xFF3E6B2F),
+        blackStone = Color(0xFF1B2A18),
+        whiteStone = Color(0xFFFBFDF4),
+        lastMoveMark = Color(0xFFE53935),
+        uiBackground = Color(0xFFF0F7E4),
+        uiSurface = Color(0xFFFFFFFF),
+        uiSurfaceVariant = Color(0xFFE2EFD2),
+        textPrimary = Color(0xFF2C4721),
+        textSecondary = Color(0xFF64855A),
+        accent = Color(0xFF558B2F),
+        isDark = false
+    )
+
+    private val MintTheme = BoardTheme(
+        id = "mint",
+        nameKey = "theme_mint",
+        descKey = "theme_mint_desc",
+        price = 300,
+        boardColor = Color(0xFF2E4B45),
+        gridColor = Color(0xFFA8D8CB),
+        starColor = Color(0xFFA8D8CB),
+        blackStone = Color(0xFF0F1815),
+        whiteStone = Color(0xFFEAF5F0),
+        lastMoveMark = Color(0xFFFF8A65),
+        uiBackground = Color(0xFF16241F),
+        uiSurface = Color(0xFF21342E),
+        uiSurfaceVariant = Color(0xFF2B443C),
+        textPrimary = Color(0xFFD8EFE6),
+        textSecondary = Color(0xFF87B3A5),
+        accent = Color(0xFF4DB6AC),
+        isDark = true
+    )
+
+    private val RoseTheme = BoardTheme(
+        id = "rose",
+        nameKey = "theme_rose",
+        descKey = "theme_rose_desc",
+        price = 500,
+        boardColor = Color(0xFFF2C6B4),
+        gridColor = Color(0xFF8C3B2E),
+        starColor = Color(0xFF8C3B2E),
+        blackStone = Color(0xFF2B1613),
+        whiteStone = Color(0xFFFFF9F5),
+        lastMoveMark = Color(0xFFD81B60),
+        uiBackground = Color(0xFFFBF0EC),
+        uiSurface = Color(0xFFFFFFFF),
+        uiSurfaceVariant = Color(0xFFF6E2DA),
+        textPrimary = Color(0xFF5C2620),
+        textSecondary = Color(0xFF9C6459),
+        accent = Color(0xFFE91E63),
+        isDark = false
+    )
+
+    val themes: List<BoardTheme> = listOf(WoodTheme, DarkTheme, BlueOcean, BambooTheme, MintTheme, RoseTheme)
+
+    val freeThemes: List<BoardTheme> = themes.filter { it.price == 0 }
 
     fun byId(id: String): BoardTheme = themes.find { it.id == id } ?: WoodTheme
+
+    fun isOwned(theme: BoardTheme, purchased: List<String>): Boolean =
+        theme.price == 0 || theme.id in purchased
 }

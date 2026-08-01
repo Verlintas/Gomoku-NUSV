@@ -1,14 +1,14 @@
 package com.gomoku.nusv.model
 
-enum class GameMode(val displayName: String) {
-    VS_AI("人机对战"),
-    PVP("双人对战")
+enum class GameMode {
+    VS_AI,
+    PVP
 }
 
-enum class Difficulty(val displayName: String, val searchDepth: Int) {
-    EASY("简单", 1),
-    MEDIUM("中等", 3),
-    HARD("困难", 6)
+enum class Difficulty(val searchDepth: Int) {
+    EASY(1),
+    MEDIUM(3),
+    HARD(6)
 }
 
 enum class GameStatus {

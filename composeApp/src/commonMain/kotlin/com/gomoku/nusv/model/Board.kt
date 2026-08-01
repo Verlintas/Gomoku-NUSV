@@ -1,8 +1,8 @@
 package com.gomoku.nusv.model
 
-enum class Stone(val id: Int, val displayName: String) {
-    BLACK(1, "黑棋"),
-    WHITE(2, "白棋");
+enum class Stone(val id: Int) {
+    BLACK(1),
+    WHITE(2);
 
     val opponent: Stone get() = if (this == BLACK) WHITE else BLACK
 

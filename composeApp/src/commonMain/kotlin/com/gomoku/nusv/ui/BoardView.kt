@@ -38,6 +38,7 @@ fun BoardView(
     isPlayerTurn: Boolean,
     hintStone: Stone?,
     boardVersion: Int,
+    winningLine: List<Pair<Int, Int>>? = null,
     onCellTap: (row: Int, col: Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -140,6 +141,29 @@ fun BoardView(
                 radius = cell * 0.095f,
                 center = Offset(origin.x + it.col * cell, origin.y + it.row * cell)
             )
+        }
+
+        winningLine?.let { line ->
+            if (line.size >= 2) {
+                val start = Offset(origin.x + line.first().second * cell, origin.y + line.first().first * cell)
+                val end = Offset(origin.x + line.last().second * cell, origin.y + line.last().first * cell)
+                drawLine(
+                    brush = Brush.linearGradient(
+                        listOf(theme.accent.copy(alpha = 0.9f), theme.lastMoveMark.copy(alpha = 0.9f))
+                    ),
+                    start = start,
+                    end = end,
+                    strokeWidth = cell * 0.28f,
+                    cap = androidx.compose.ui.graphics.StrokeCap.Round
+                )
+                drawLine(
+                    color = Color.White.copy(alpha = 0.35f),
+                    start = start,
+                    end = end,
+                    strokeWidth = cell * 0.08f,
+                    cap = androidx.compose.ui.graphics.StrokeCap.Round
+                )
+            }
         }
 
         hover?.let { pos ->

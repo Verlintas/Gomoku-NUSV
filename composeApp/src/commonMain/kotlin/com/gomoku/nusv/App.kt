@@ -1,5 +1,7 @@
 package com.gomoku.nusv
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -11,6 +13,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.gomoku.nusv.data.ProfileStore
+import com.gomoku.nusv.i18n.I18n
 import com.gomoku.nusv.sound.SoundPlayer
 import com.gomoku.nusv.ui.GameController
 import com.gomoku.nusv.ui.GameScreen
@@ -24,6 +27,8 @@ fun App() {
     val sound = remember { SoundPlayer() }
     val controller = remember { GameController(store, sound) }
     var theme by remember { mutableStateOf<BoardTheme>(ThemeRegistry.byId(store.loadThemeId())) }
+
+    I18n.setLanguage(I18n.Language.fromCode(store.loadLanguage()))
 
     LaunchedEffect(Unit) {
         controller.startTimer()
@@ -57,13 +62,19 @@ fun App() {
     }
 
     MaterialTheme(colorScheme = colorScheme) {
-        GameScreen(
-            controller = controller,
-            theme = theme,
-            onThemeChange = { newTheme ->
-                theme = newTheme
-                store.saveThemeId(newTheme.id)
-            }
-        )
+        Crossfade(
+            targetState = theme,
+            animationSpec = tween(300),
+            label = "theme"
+        ) { activeTheme ->
+            GameScreen(
+                controller = controller,
+                theme = activeTheme,
+                onThemeChange = { newTheme ->
+                    theme = newTheme
+                    store.saveThemeId(newTheme.id)
+                }
+            )
+        }
     }
 }

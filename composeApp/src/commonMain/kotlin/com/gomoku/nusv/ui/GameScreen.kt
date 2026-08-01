@@ -1,5 +1,8 @@
 package com.gomoku.nusv.ui
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -22,6 +25,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -41,12 +46,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.gomoku.nusv.data.Achievements
+import com.gomoku.nusv.i18n.I18n
 import com.gomoku.nusv.model.Difficulty
+import com.gomoku.nusv.ui.effects.EffectRegistry
+import com.gomoku.nusv.ui.effects.EffectsOverlay
 import com.gomoku.nusv.model.GameConfig
 import com.gomoku.nusv.model.GameMode
 import com.gomoku.nusv.model.GameStatus
@@ -85,31 +96,94 @@ fun GameScreen(
     ResultDialog(controller, theme)
     ResignDialog(controller, theme)
     RestoreDialog(controller, theme)
+    ShopDialog(controller, theme, onThemeChange)
+    EffectShopDialog(controller, theme)
+    AchievementsDialog(controller, theme)
+    StatsDialog(controller, theme)
 }
 
 @Composable
 private fun Header(controller: GameController, theme: BoardTheme) {
-    Row(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
             .background(theme.uiSurface)
-            .padding(horizontal = 20.dp, vertical = 14.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(horizontal = 20.dp, vertical = 14.dp)
     ) {
-        Column(Modifier.weight(1f)) {
-            Text(
-                "Gomoku-NUSV",
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = theme.textPrimary
+        val compact = maxWidth < 560.dp
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(
+                    "Gomoku-NUSV",
+                    fontSize = if (compact) 19.sp else 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = theme.textPrimary
+                )
+                if (!compact) {
+                    Text(
+                        I18n.t(if (controller.isVsAi) "subtitle_ai" else "subtitle_pvp"),
+                        fontSize = 12.sp,
+                        color = theme.textSecondary
+                    )
+                }
+            }
+            CoinBadge(controller, theme)
+            Spacer(Modifier.width(10.dp))
+            if (compact) {
+                Text(
+                    I18n.t("score") + " ${controller.profile.score}",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = theme.textPrimary,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(theme.uiSurfaceVariant)
+                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                )
+            } else {
+                ScoreBadge(controller, theme)
+            }
+        }
+    }
+}
+
+@Composable
+private fun CoinBadge(controller: GameController, theme: BoardTheme) {
+    val progress = remember { Animatable(1f) }
+    LaunchedEffect(controller.coinFlash) {
+        if (controller.coinFlash > 0) {
+            progress.snapTo(1.4f)
+            progress.animateTo(1f, tween(500, easing = FastOutSlowInEasing))
+        }
+    }
+    Card(
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF8E1)),
+        shape = RoundedCornerShape(14.dp),
+        border = BorderStroke(1.dp, Color(0xFFF0C94C))
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 14.dp, vertical = 8.dp)
+                .graphicsLayer {
+                    scaleX = progress.value
+                    scaleY = progress.value
+                },
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(16.dp)
+                    .clip(CircleShape)
+                    .background(Brush.radialGradient(listOf(Color(0xFFFFE082), Color(0xFFF0C94C))))
             )
             Text(
-                "五子棋对弈 · ${if (controller.isVsAi) "人机对战" else "双人对战"}",
-                fontSize = 12.sp,
-                color = theme.textSecondary
+                "${controller.profile.coins}",
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF8D6E00)
             )
         }
-        ScoreBadge(controller, theme)
     }
 }
 
@@ -125,7 +199,7 @@ private fun ScoreBadge(controller: GameController, theme: BoardTheme) {
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("积分", fontSize = 11.sp, color = theme.textSecondary)
+                Text(I18n.t("score"), fontSize = 11.sp, color = theme.textSecondary)
                 Text(
                     "${controller.profile.score}",
                     fontSize = 18.sp,
@@ -133,10 +207,10 @@ private fun ScoreBadge(controller: GameController, theme: BoardTheme) {
                     color = theme.accent
                 )
             }
-            VerticalStat(controller.profile.wins, "胜", theme)
-            VerticalStat(controller.profile.losses, "负", theme)
-            VerticalStat(controller.profile.draws, "平", theme)
-            VerticalStat(controller.profile.winStreak, "连胜", theme)
+            VerticalStat(controller.profile.wins, "wins", theme)
+            VerticalStat(controller.profile.losses, "losses", theme)
+            VerticalStat(controller.profile.draws, "draws", theme)
+            VerticalStat(controller.profile.winStreak, "streak", theme)
         }
     }
 }
@@ -145,7 +219,7 @@ private fun ScoreBadge(controller: GameController, theme: BoardTheme) {
 private fun VerticalStat(value: Int, label: String, theme: BoardTheme) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text("$value", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = theme.textPrimary)
-        Text(label, fontSize = 11.sp, color = theme.textSecondary)
+        Text(I18n.t(label), fontSize = 11.sp, color = theme.textSecondary)
     }
 }
 
@@ -156,7 +230,7 @@ private fun BoardArea(controller: GameController, theme: BoardTheme, modifier: M
             .fillMaxSize()
             .clickable(
                 role = Role.Button,
-                onClickLabel = "棋盘，点击棋盘中心落子"
+                onClickLabel = I18n.t("board_click_hint")
             ) {
                 val mid = controller.board.size / 2
                 controller.handleTap(mid, mid)
@@ -170,10 +244,20 @@ private fun BoardArea(controller: GameController, theme: BoardTheme, modifier: M
             isPlayerTurn = controller.isPlayerTurn,
             hintStone = if (controller.isPlayerTurn) controller.currentStone else null,
             boardVersion = controller.boardVersion,
+            winningLine = controller.winningLine,
             onCellTap = controller::handleTap,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(8.dp)
+        )
+        EffectsOverlay(
+            boardSize = controller.board.size,
+            theme = theme,
+            lastMove = controller.lastMove,
+            boardVersion = controller.boardVersion,
+            enabledEffects = controller.profile.enabledEffects,
+            winningLine = controller.winningLine,
+            modifier = Modifier.fillMaxSize()
         )
         if (controller.aiThinking) {
             Card(
@@ -181,7 +265,7 @@ private fun BoardArea(controller: GameController, theme: BoardTheme, modifier: M
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Text(
-                    "AI 思考中...",
+                    I18n.t("ai_thinking_short"),
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
                     color = theme.textPrimary,
                     fontWeight = FontWeight.Medium
@@ -190,6 +274,50 @@ private fun BoardArea(controller: GameController, theme: BoardTheme, modifier: M
         }
         if (controller.aiTimedOut) {
             PerformanceWarning(controller, theme)
+        }
+        AchievementToast(controller, theme)
+    }
+}
+
+@Composable
+private fun AchievementToast(controller: GameController, theme: BoardTheme) {
+    if (!controller.showAchievementToast || controller.newlyUnlocked.isEmpty()) return
+    LaunchedEffect(controller.newlyUnlocked) {
+        kotlinx.coroutines.delay(5_000)
+        controller.showAchievementToast = false
+    }
+    val progress = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        progress.animateTo(1f, tween(400, easing = FastOutSlowInEasing))
+    }
+    Card(
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF8E1)),
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, Color(0xFFF0C94C))
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(horizontal = 20.dp, vertical = 12.dp)
+                .graphicsLayer {
+                    scaleX = 0.8f + progress.value * 0.2f
+                    scaleY = 0.8f + progress.value * 0.2f
+                    alpha = progress.value
+                },
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                I18n.t("achievement_unlocked"),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF8D6E00)
+            )
+            controller.newlyUnlocked.forEach { a ->
+                Text(
+                    I18n.t(a.nameKey) + " +" + a.coinReward + " " + I18n.t("coins"),
+                    fontSize = 13.sp,
+                    color = Color(0xFF5D4A00)
+                )
+            }
         }
     }
 }
@@ -201,29 +329,25 @@ private fun PerformanceWarning(controller: GameController, theme: BoardTheme) {
         controller.aiTimedOut = false
     }
     Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF3E0)),
-        shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(1.dp, Color(0xFFF57C00))
+        colors = CardDefaults.cardColors(containerColor = theme.uiSurface.copy(alpha = 0.95f)),
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, theme.accent.copy(alpha = 0.45f))
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        Column(
+            modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
-            Text("⚠", fontSize = 18.sp)
-            Column {
-                Text(
-                    "设备算力有限，本步 AI 已降低思考深度",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color(0xFF7A4A00)
-                )
-                Text(
-                    "若想获得最强 AI，请使用性能更强的设备",
-                    fontSize = 11.sp,
-                    color = Color(0xFF9C6C2E)
-                )
-            }
+            Text(
+                I18n.t("perf_warn_title"),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = theme.textPrimary
+            )
+            Text(
+                I18n.t("perf_warn_body"),
+                fontSize = 10.sp,
+                color = theme.textSecondary
+            )
         }
     }
 }
@@ -252,58 +376,65 @@ private fun ControlPanel(
             TurnIndicator(controller, theme)
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                ActionButton("悔棋", enabled = controller.moveHistory.isNotEmpty() && !controller.aiThinking) {
+                ActionButton(I18n.t("undo"), enabled = controller.moveHistory.isNotEmpty() && !controller.aiThinking) {
                     controller.undo()
                 }
-                ActionButton("认输", enabled = !controller.status.isOver && controller.moveHistory.isNotEmpty()) {
+                ActionButton(I18n.t("resign"), enabled = !controller.status.isOver && controller.moveHistory.isNotEmpty()) {
                     controller.resign()
                 }
-                ActionButton("重开", enabled = true) {
+                ActionButton(I18n.t("restart"), enabled = true) {
                     controller.restart()
                 }
             }
 
             HorizontalDivider(color = theme.uiSurfaceVariant)
 
-            Text("对局设置", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = theme.textSecondary)
-            ChipGroup("模式", theme) {
+            Text(I18n.t("settings"), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = theme.textSecondary)
+            ChipGroup(I18n.t("language"), theme) {
+                I18n.Language.entries.forEach { lang ->
+                    ChoiceChip(lang.displayName, I18n.currentLanguage == lang, theme) {
+                        controller.setLanguage(lang)
+                    }
+                }
+            }
+            ChipGroup(I18n.t("mode"), theme) {
                 ChoiceChip(
-                    "双人",
+                    I18n.t("mode_pvp"),
                     config.mode == GameMode.PVP,
                     theme
                 ) { controller.setMode(GameMode.PVP) }
                 ChoiceChip(
-                    "人机",
+                    I18n.t("mode_ai"),
                     config.mode == GameMode.VS_AI,
                     theme
                 ) { controller.setMode(GameMode.VS_AI) }
             }
             if (controller.isVsAi) {
-                ChipGroup("难度", theme) {
+                ChipGroup(I18n.t("difficulty"), theme) {
                     Difficulty.entries.forEach { d ->
-                        ChoiceChip(d.displayName, config.difficulty == d, theme) {
+                        ChoiceChip(difficultyName(d), config.difficulty == d, theme) {
                             controller.setDifficulty(d)
                         }
                     }
                 }
-                ChipGroup("执子", theme) {
-                    ChoiceChip("黑棋先手", controller.playerColor == Stone.BLACK, theme) {
+                ChipGroup(I18n.t("side"), theme) {
+                    ChoiceChip(I18n.t("side_black"), controller.playerColor == Stone.BLACK, theme) {
                         controller.setPlayerStone(Stone.BLACK)
                     }
-                    ChoiceChip("白棋后手", controller.playerColor == Stone.WHITE, theme) {
+                    ChoiceChip(I18n.t("side_white"), controller.playerColor == Stone.WHITE, theme) {
                         controller.setPlayerStone(Stone.WHITE)
                     }
                 }
             }
-            ChipGroup("棋盘", theme) {
+            ChipGroup(I18n.t("board"), theme) {
                 GameConfig.BOARD_SIZES.forEach { size ->
-                    ChoiceChip("${size}路", config.boardSize == size, theme) {
+                    ChoiceChip(I18n.t("board_size", "n" to "$size"), config.boardSize == size, theme) {
                         controller.setBoardSize(size)
                     }
                 }
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("每步限时", modifier = Modifier.weight(1f), fontSize = 13.sp, color = theme.textPrimary)
+                Text(I18n.t("per_move_timer"), modifier = Modifier.weight(1f), fontSize = 13.sp, color = theme.textPrimary)
                 Switch(
                     checked = config.timerEnabled,
                     onCheckedChange = { controller.setTimerEnabled(it) }
@@ -327,18 +458,63 @@ private fun ControlPanel(
                 }
             }
 
-            ChipGroup("主题", theme) {
-                ThemeRegistry.themes.forEach { t ->
-                    ChoiceChip(t.name, t.id == theme.id, theme) { onThemeChange(t) }
+            ChipGroup(I18n.t("theme"), theme) {
+                ThemeRegistry.themes.filter { controller.isThemeOwned(it) }.forEach { t ->
+                    ChoiceChip(I18n.t(t.nameKey), t.id == theme.id, theme) { onThemeChange(t) }
+                }
+            }
+            OutlinedButton(
+                onClick = { controller.showShopDialog = true },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(I18n.t("theme_shop"), fontSize = 13.sp)
+            }
+
+            HorizontalDivider(color = theme.uiSurfaceVariant)
+
+            Text(I18n.t("effects"), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = theme.textSecondary)
+            EffectRegistry.all.filter { controller.isEffectOwned(it) }.forEach { e ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(I18n.t(e.nameKey), fontSize = 13.sp, color = theme.textPrimary)
+                        Text(I18n.t(e.descKey), fontSize = 11.sp, color = theme.textSecondary)
+                    }
+                    Switch(
+                        checked = controller.isEffectEnabled(e),
+                        onCheckedChange = { controller.setEffectEnabled(e, it) }
+                    )
+                }
+            }
+            OutlinedButton(
+                onClick = { controller.showEffectShopDialog = true },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(I18n.t("effect_shop"), fontSize = 13.sp)
+            }
+
+            HorizontalDivider(color = theme.uiSurfaceVariant)
+
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(
+                    onClick = { controller.showAchievementsDialog = true },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(I18n.t("achievements"), fontSize = 13.sp)
+                }
+                Button(
+                    onClick = { controller.showStatsDialog = true },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(I18n.t("stats"), fontSize = 13.sp)
                 }
             }
 
             HorizontalDivider(color = theme.uiSurfaceVariant)
 
-            Text("对局信息", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = theme.textSecondary)
-            InfoRow("总用时", formatClock(controller.totalSeconds), theme)
-            InfoRow("落子数", "${controller.moveHistory.size}", theme)
-            InfoRow("当前回合", controller.currentStone.displayName, theme)
+            Text(I18n.t("game_info"), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = theme.textSecondary)
+            InfoRow(I18n.t("total_time"), formatClock(controller.totalSeconds), theme)
+            InfoRow(I18n.t("move_count"), "${controller.moveHistory.size}", theme)
+            InfoRow(I18n.t("current_turn"), stoneName(controller.currentStone), theme)
         }
     }
 }
@@ -346,9 +522,9 @@ private fun ControlPanel(
 @Composable
 private fun TurnIndicator(controller: GameController, theme: BoardTheme) {
     val playerLabel = if (controller.isVsAi) {
-        "${controller.playerColor.displayName}（你） vs AI"
+        I18n.t("you_vs_ai", "player" to stoneName(controller.playerColor))
     } else {
-        "双人同屏"
+        I18n.t("pvp_label")
     }
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(playerLabel, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = theme.textPrimary)
@@ -357,9 +533,9 @@ private fun TurnIndicator(controller: GameController, theme: BoardTheme) {
             Spacer(Modifier.width(8.dp))
             Text(
                 if (controller.isVsAi) {
-                    if (controller.currentStone == controller.playerColor) "轮到你了" else "AI 思考中"
+                    if (controller.currentStone == controller.playerColor) I18n.t("your_turn") else I18n.t("ai_thinking")
                 } else {
-                    "${controller.currentStone.displayName}回合"
+                    if (controller.currentStone == Stone.BLACK) I18n.t("black_turn") else I18n.t("white_turn")
                 },
                 fontSize = 14.sp,
                 color = theme.textPrimary,
@@ -390,11 +566,16 @@ private fun StoneDot(stone: Stone, theme: BoardTheme) {
     )
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ChipGroup(title: String, theme: BoardTheme, content: @Composable () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(title, fontSize = 12.sp, color = theme.textSecondary)
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
             content()
         }
     }
@@ -444,9 +625,9 @@ private fun ResultDialog(controller: GameController, theme: BoardTheme) {
     val result = controller.scoreResult!!
     val status = controller.status
     val (title, titleColor) = when (status) {
-        GameStatus.BLACK_WIN -> "黑棋获胜" to Color(0xFF2E7D32)
-        GameStatus.WHITE_WIN -> "白棋获胜" to Color(0xFFC62828)
-        GameStatus.DRAW -> "平局" to theme.textSecondary
+        GameStatus.BLACK_WIN -> I18n.t("black_wins") to Color(0xFF2E7D32)
+        GameStatus.WHITE_WIN -> I18n.t("white_wins") to Color(0xFFC62828)
+        GameStatus.DRAW -> I18n.t("draw") to theme.textSecondary
         else -> return
     }
     AlertDialog(
@@ -469,16 +650,16 @@ private fun ResultDialog(controller: GameController, theme: BoardTheme) {
                 if (controller.isVsAi) {
                     Text(
                         when {
-                            isDraw -> "与 AI 战成平手"
-                            isPlayerWin -> "你击败了 AI！"
-                            else -> "AI 获胜，再接再厉"
+                            isDraw -> I18n.t("draw_with_ai")
+                            isPlayerWin -> I18n.t("you_beat_ai")
+                            else -> I18n.t("ai_won")
                         },
                         color = theme.textPrimary,
                         fontSize = 14.sp
                     )
                 } else {
                     Text(
-                        if (isDraw) "双方战成平手" else "恭喜${controller.currentStone.opponent.displayName}",
+                        if (isDraw) I18n.t("draw_both") else I18n.t("congrats", "winner" to stoneName(controller.currentStone.opponent)),
                         color = theme.textPrimary,
                         fontSize = 14.sp
                     )
@@ -496,7 +677,7 @@ private fun ResultDialog(controller: GameController, theme: BoardTheme) {
                     }
                 }
                 Text(
-                    "积分 +${result.scoreGained}",
+                    I18n.t("score_gained", "n" to "${result.scoreGained}"),
                     color = theme.accent,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
@@ -507,12 +688,12 @@ private fun ResultDialog(controller: GameController, theme: BoardTheme) {
         },
         confirmButton = {
             Button(onClick = { controller.showResultDialog = false; controller.restart() }) {
-                Text("再来一局")
+                Text(I18n.t("play_again"))
             }
         },
         dismissButton = {
             TextButton(onClick = { controller.showResultDialog = false }) {
-                Text("关闭")
+                Text(I18n.t("close"))
             }
         }
     )
@@ -524,15 +705,15 @@ private fun ResignDialog(controller: GameController, theme: BoardTheme) {
     AlertDialog(
         onDismissRequest = controller::cancelResign,
         containerColor = theme.uiSurface,
-        title = { Text("确认认输？", color = theme.textPrimary) },
-        text = { Text("认输后本局将判定对方获胜。", color = theme.textSecondary) },
+        title = { Text(I18n.t("resign_title"), color = theme.textPrimary) },
+        text = { Text(I18n.t("resign_body"), color = theme.textSecondary) },
         confirmButton = {
             Button(onClick = controller::confirmResign) {
-                Text("确认认输")
+                Text(I18n.t("confirm_resign"))
             }
         },
         dismissButton = {
-            TextButton(onClick = controller::cancelResign) { Text("取消") }
+            TextButton(onClick = controller::cancelResign) { Text(I18n.t("cancel")) }
         }
     )
 }
@@ -544,21 +725,348 @@ private fun RestoreDialog(controller: GameController, theme: BoardTheme) {
     AlertDialog(
         onDismissRequest = {},
         containerColor = theme.uiSurface,
-        title = { Text("发现未完成的对局", color = theme.textPrimary) },
+        title = { Text(I18n.t("resume_title"), color = theme.textPrimary) },
         text = {
             Text(
-                "棋盘 ${saved.boardSize} 路 · 已落 ${saved.history.size} 子 · " +
-                    "${if (saved.modeName == "PVP") "双人" else "人机"}模式\n是否继续上次对局？",
+                I18n.t(
+                    "resume_body",
+                    "size" to "${saved.boardSize}",
+                    "moves" to "${saved.history.size}",
+                    "mode" to I18n.t(if (saved.modeName == "PVP") "mode_pvp" else "mode_ai")
+                ),
                 color = theme.textSecondary
             )
         },
         confirmButton = {
             Button(onClick = { controller.continueSavedGame(saved) }) {
-                Text("继续对局")
+                Text(I18n.t("resume_continue"))
             }
         },
         dismissButton = {
-            TextButton(onClick = controller::discardSavedGame) { Text("放弃并重开") }
+            TextButton(onClick = controller::discardSavedGame) { Text(I18n.t("resume_discard")) }
         }
     )
 }
+
+@Composable
+private fun ShopDialog(
+    controller: GameController,
+    theme: BoardTheme,
+    onThemeChange: (BoardTheme) -> Unit
+) {
+    if (!controller.showShopDialog) return
+    AlertDialog(
+        onDismissRequest = { controller.showShopDialog = false },
+        containerColor = theme.uiSurface,
+        title = {
+            Column {
+                Text(I18n.t("theme_shop"), color = theme.textPrimary, fontWeight = FontWeight.Bold)
+                Text(
+                    I18n.t("my_coins", "n" to "${controller.profile.coins}"),
+                    color = theme.textSecondary,
+                    fontSize = 12.sp
+                )
+            }
+        },
+        text = {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                ThemeRegistry.themes.forEach { t ->
+                    val owned = controller.isThemeOwned(t)
+                    val selected = t.id == theme.id
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (selected) theme.uiSurfaceVariant else theme.uiBackground
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.dp, if (selected) theme.accent else theme.uiSurfaceVariant)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(44.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(t.boardColor)
+                                    .border(1.dp, t.gridColor, RoundedCornerShape(8.dp))
+                            )
+                            Column(Modifier.weight(1f)) {
+                                Text(
+                                    I18n.t(t.nameKey) + if (selected) I18n.t("in_use") else "",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = theme.textPrimary
+                                )
+                                Text(I18n.t(t.descKey), fontSize = 12.sp, color = theme.textSecondary)
+                            }
+                            when {
+                                selected -> TextButton(onClick = { controller.showShopDialog = false }) {
+                                    Text(I18n.t("in_use_short"), color = theme.accent, fontSize = 13.sp)
+                                }
+                                owned -> Button(onClick = { onThemeChange(t); controller.showShopDialog = false }) {
+                                    Text(I18n.t("use"), fontSize = 13.sp)
+                                }
+                                else -> Button(
+                                    enabled = controller.profile.coins >= t.price,
+                                    onClick = {
+                                        if (controller.purchaseTheme(t)) {
+                                            onThemeChange(t)
+                                            controller.showShopDialog = false
+                                        }
+                                    }
+                                ) {
+                                    Text(I18n.t("coins_price", "n" to "${t.price}"), fontSize = 13.sp)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = { controller.showShopDialog = false }) { Text(I18n.t("close")) }
+        }
+    )
+}
+
+@Composable
+private fun EffectShopDialog(controller: GameController, theme: BoardTheme) {
+    if (!controller.showEffectShopDialog) return
+    AlertDialog(
+        onDismissRequest = { controller.showEffectShopDialog = false },
+        containerColor = theme.uiSurface,
+        title = {
+            Column {
+                Text(I18n.t("effect_shop"), color = theme.textPrimary, fontWeight = FontWeight.Bold)
+                Text(
+                    I18n.t("my_coins", "n" to "${controller.profile.coins}"),
+                    color = theme.textSecondary,
+                    fontSize = 12.sp
+                )
+            }
+        },
+        text = {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                EffectRegistry.all.forEach { e ->
+                    val owned = controller.isEffectOwned(e)
+                    val enabled = controller.isEffectEnabled(e)
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (enabled) theme.uiSurfaceVariant else theme.uiBackground
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.dp, if (enabled) theme.accent else theme.uiSurfaceVariant)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(44.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(
+                                        Brush.linearGradient(
+                                            listOf(theme.accent.copy(alpha = 0.35f), theme.uiSurfaceVariant)
+                                        )
+                                    )
+                                    .border(1.dp, theme.accent.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                            )
+                            Column(Modifier.weight(1f)) {
+                                Text(
+                                    I18n.t(e.nameKey) + if (enabled) I18n.t("enabled_suffix") else "",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = theme.textPrimary
+                                )
+                                Text(I18n.t(e.descKey), fontSize = 12.sp, color = theme.textSecondary)
+                            }
+                            when {
+                                enabled -> TextButton(onClick = { controller.showEffectShopDialog = false }) {
+                                    Text(I18n.t("enabled_short"), color = theme.accent, fontSize = 13.sp)
+                                }
+                                owned -> Button(
+                                    onClick = {
+                                        controller.setEffectEnabled(e, true)
+                                        controller.showEffectShopDialog = false
+                                    }
+                                ) {
+                                    Text(I18n.t("enable"), fontSize = 13.sp)
+                                }
+                                else -> Button(
+                                    enabled = controller.profile.coins >= e.price,
+                                    onClick = {
+                                        if (controller.purchaseEffect(e)) {
+                                            controller.setEffectEnabled(e, true)
+                                            controller.showEffectShopDialog = false
+                                        }
+                                    }
+                                ) {
+                                    Text(I18n.t("coins_price", "n" to "${e.price}"), fontSize = 13.sp)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = { controller.showEffectShopDialog = false }) { Text(I18n.t("close")) }
+        }
+    )
+}
+
+@Composable
+private fun AchievementsDialog(controller: GameController, theme: BoardTheme) {
+    if (!controller.showAchievementsDialog) return
+    AlertDialog(
+        onDismissRequest = { controller.showAchievementsDialog = false },
+        containerColor = theme.uiSurface,
+        title = { Text(I18n.t("achievements"), color = theme.textPrimary, fontWeight = FontWeight.Bold) },
+        text = {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Achievements.all.forEach { a ->
+                    val unlocked = a.id in controller.profile.achievements
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (unlocked) Color(0xFFFFF8E1) else theme.uiBackground
+                        ),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Text(
+                                if (unlocked) "★" else "☆",
+                                fontSize = 16.sp,
+                                color = if (unlocked) Color(0xFFF0C94C) else theme.textSecondary
+                            )
+                            Column(Modifier.weight(1f)) {
+                                Text(
+                                    I18n.t(a.nameKey),
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = if (unlocked) theme.textPrimary else theme.textSecondary
+                                )
+                                Text(
+                                    I18n.t(a.descKey),
+                                    fontSize = 12.sp,
+                                    color = if (unlocked) theme.textSecondary else theme.textSecondary.copy(alpha = 0.6f)
+                                )
+                            }
+                            Text(
+                                if (unlocked) {
+                                    I18n.t("unlocked_reward", "n" to "${a.coinReward}")
+                                } else {
+                                    I18n.t("reward", "n" to "${a.coinReward}")
+                                },
+                                fontSize = 12.sp,
+                                color = if (unlocked) Color(0xFF8D6E00) else theme.textSecondary
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = { controller.showAchievementsDialog = false }) { Text(I18n.t("close")) }
+        }
+    )
+}
+
+@Composable
+private fun StatsDialog(controller: GameController, theme: BoardTheme) {
+    if (!controller.showStatsDialog) return
+    val p = controller.profile
+    val played = p.gamesPlayed.coerceAtLeast(1)
+    val winRate = p.wins * 100 / played
+    AlertDialog(
+        onDismissRequest = { controller.showStatsDialog = false },
+        containerColor = theme.uiSurface,
+        title = { Text(I18n.t("stats_title"), color = theme.textPrimary, fontWeight = FontWeight.Bold) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                InfoRow(I18n.t("total_games"), "${p.gamesPlayed}", theme)
+                InfoRow(I18n.t("victory"), "${p.wins}", theme)
+                InfoRow(I18n.t("defeat"), "${p.losses}", theme)
+                InfoRow(I18n.t("draws"), "${p.draws}", theme)
+                InfoRow(I18n.t("win_rate"), "${winRate}%", theme)
+                InfoRow(I18n.t("current_streak"), "${p.winStreak}", theme)
+                InfoRow(I18n.t("best_streak"), "${p.bestWinStreak}", theme)
+                InfoRow(I18n.t("score"), "${p.score}", theme)
+                InfoRow(I18n.t("coins"), "${p.coins}", theme)
+                InfoRow(I18n.t("purchased_themes"), "${p.purchasedThemes.size} / ${ThemeRegistry.themes.count { it.price > 0 }}", theme)
+                HorizontalDivider(color = theme.uiSurfaceVariant)
+                Text(I18n.t("difficulty_wins"), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = theme.textSecondary)
+                Difficulty.entries.forEach { d ->
+                    val wins = p.winsByDifficulty[d.name] ?: 0
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            difficultyName(d),
+                            fontSize = 13.sp,
+                            color = theme.textPrimary,
+                            modifier = Modifier.width(64.dp)
+                        )
+                        Box(
+                            Modifier
+                                .weight(1f)
+                                .height(10.dp)
+                                .clip(RoundedCornerShape(5.dp))
+                                .background(theme.uiSurfaceVariant)
+                        ) {
+                            if (wins > 0) {
+                                Box(
+                                    Modifier
+                                        .fillMaxWidth(wins / 100f)
+                                        .height(10.dp)
+                                        .clip(RoundedCornerShape(5.dp))
+                                        .background(theme.accent)
+                                )
+                            }
+                        }
+                        Spacer(Modifier.width(8.dp))
+                        Text("$wins", fontSize = 13.sp, color = theme.textSecondary)
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = { controller.showStatsDialog = false }) { Text(I18n.t("close")) }
+        }
+    )
+}
+
+private fun stoneName(stone: Stone): String =
+    I18n.t(if (stone == Stone.BLACK) "stone_black" else "stone_white")
+
+private fun difficultyName(d: Difficulty): String = I18n.t(
+    when (d) {
+        Difficulty.EASY -> "diff_easy"
+        Difficulty.MEDIUM -> "diff_medium"
+        Difficulty.HARD -> "diff_hard"
+    }
+)

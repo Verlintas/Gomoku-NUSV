@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Language switching** — Simplified Chinese and English, switchable in the
+  settings panel and persisted per device. All UI strings, settlement breakdowns,
+  achievements, effects and theme descriptions are localized.
+- **Sci-fi board effects** — four animated effects, unlocked with coins and toggled
+  per effect in the settings panel:
+  - Energy Ripple: expanding energy rings on every stone placement *(free, enabled
+    by default for new players)*
+  - Particle Starfield: star-particle bursts on placement and along the winning line
+  - Hologram Sweep: a periodic scanning beam sweeping across the board
+  - Neon Trail: flowing neon energy along the winning line
+- **Coin economy** — wins award 50 coins, draws 10; coins are spent in the theme
+  and effect shops.
+- **Achievement system** — seven achievements (first win, win counts, win streaks,
+  Hard-mode wins, games played, draws) granting coin rewards; unlocked achievements
+  are shown in a dedicated dialog and pop up as an animated toast.
+- **Statistics dialog** — win rate, streaks, totals, and per-difficulty win bars.
+- **Theme shop** — three new purchasable themes (Bamboo, Mint, Rose) alongside the
+  three built-in free ones.
+- Victory line highlighting on the board (gradient stroke over the winning stones).
+- Theme crossfade animation when switching boards.
+
+### Changed
+
+- The low-performance AI notice now follows the active theme (surface colors and
+  accent border) and uses a minimal layout.
+- Effect coordinates are density-aware, so particle positions stay accurate on
+  high-density Android screens.
+- Chip groups wrap onto multiple lines when localized text is long (FlowRow), and
+  the header compacts on narrow screens.
+
 ### Fixed
 
 - AI search no longer mutates the displayed board: the engine now works on a
