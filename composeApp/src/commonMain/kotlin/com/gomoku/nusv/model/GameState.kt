@@ -7,8 +7,8 @@ enum class GameMode {
 
 enum class Difficulty(val searchDepth: Int) {
     EASY(1),
-    MEDIUM(3),
-    HARD(6)
+    MEDIUM(4),
+    HARD(8)
 }
 
 enum class GameStatus {

@@ -5,6 +5,30 @@ All notable changes to Gomoku-NUSV are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1] - 2026-08-01
+
+### Changed
+
+- **Much stronger AI** — the engine was rebuilt around threat-space search
+  (inspired by the NUSV-Lite Gomoku mini app):
+  - Forced moves are detected and expanded first: immediate win, blocking an
+    immediate opponent win, creating an open four, and intelligently blocking an
+    opponent's open four (choosing the point that leaves the fewest remaining
+    threats).
+  - When a forced move exists, only it is searched — the same budget now reaches
+    far deeper lines (VCF-style continuation past the depth limit).
+  - Incremental evaluation (delta evaluation on the affected lines) keeps search
+    fast on low-end phones.
+  - Refined line scoring (open vs. blocked two/three/four gradients).
+  - Easy mode also wins/blocks immediate threats before playing greedily.
+- Search depths: Medium 3→4, Hard 6→8 on desktop; mobile caps raised to 6 plies
+  (was 4) with the existing 3-second budget.
+
+### Notes
+
+- Medium on phones now uses the same threat-space search as Hard, making it a
+  reasonable challenge; Hard is substantially stronger.
+
 ## [1.4.0] - 2026-08-01
 
 ### Added
