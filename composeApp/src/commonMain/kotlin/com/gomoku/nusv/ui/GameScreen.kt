@@ -414,7 +414,7 @@ private fun ControlPanel(
                     }
                 }
             }
-            if (controller.lanMode) {
+            if (controller.lanMode || controller.lanStatus == "lan_disconnected") {
                 LanPanel(controller, theme)
             }
             if (controller.isVsAi) {
@@ -764,6 +764,7 @@ private fun LanPanel(controller: GameController, theme: BoardTheme) {
                         "lan_connecting" -> I18n.t("lan_connecting")
                         "lan_host_failed" -> I18n.t("lan_host_failed")
                         "lan_join_failed" -> I18n.t("lan_join_failed")
+                        "lan_disconnected" -> I18n.t("lan_disconnected")
                         else -> I18n.t("lan_setup")
                     },
                     fontSize = 12.sp,
@@ -839,7 +840,7 @@ private fun LanPanel(controller: GameController, theme: BoardTheme) {
     }
     if (controller.lanStatus == "lan_disconnected") {
         Text(
-            I18n.t("lan_disconnected"),
+            I18n.t("lan_rejoin_hint"),
             fontSize = 12.sp,
             color = Color(0xFFC62828)
         )

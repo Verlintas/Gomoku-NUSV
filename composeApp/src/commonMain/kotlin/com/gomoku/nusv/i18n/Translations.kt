@@ -272,7 +272,8 @@ private val zh: Map<String, String> = mapOf(
         "lan_disconnected" to "对方已断开连接",
         "lan_unsupported" to "当前平台暂不支持局域网联机",
         "lan_cancel" to "取消",
-        "lan_leave" to "退出联机"
+        "lan_leave" to "退出联机",
+        "lan_rejoin_hint" to "对方已断开，可重新创建房间或加入"
     )
 
 private val en: Map<String, String> = mapOf(
@@ -532,7 +533,8 @@ private val en: Map<String, String> = mapOf(
         "lan_disconnected" to "Opponent disconnected",
         "lan_unsupported" to "LAN play is not supported on this platform",
         "lan_cancel" to "Cancel",
-        "lan_leave" to "Leave"
+        "lan_leave" to "Leave",
+        "lan_rejoin_hint" to "The opponent left — create a room or join again"
     )
 
     fun t(key: String, language: Language = Language.ZH): String =

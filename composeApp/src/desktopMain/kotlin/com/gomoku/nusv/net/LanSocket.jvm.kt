@@ -57,8 +57,8 @@ actual fun lanHost(port: Int): LanSocket? {
         val server = ServerSocket()
         server.reuseAddress = true
         server.bind(InetSocketAddress(port))
-        // 等待首个连接（最多 60 秒超时）
-        server.soTimeout = 60_000
+        // 等待首个连接（最多 20 秒超时，取消/重试响应更快）
+        server.soTimeout = 20_000
         val client = server.accept()
         server.close()
         JvmLanSocket(client)

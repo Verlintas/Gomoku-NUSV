@@ -137,7 +137,7 @@ class GameController(
         }
         currentStone = currentStone.opponent
         turnSecondsLeft = config.secondsPerMove
-        persistGame()
+        if (!lanMode) persistGame()
         if (sendToLan && lanMode && lanConnected) {
             sendLan(LanMessage.Move(row, col))
         }
@@ -362,6 +362,7 @@ class GameController(
     fun useHint() {
         if (status.isOver || aiThinking) return
         if (isVsAi && currentStone != playerColor) return
+        if (lanMode && !isMyLanTurn()) return
         if (powerupCount(PowerupType.HINT) <= 0) return
         profile = PowerupSystem.consume(profile, PowerupType.HINT)
         profile = DailyTaskSystem.onEvent(profile, TaskType.USE_POWERUP).first
@@ -383,6 +384,7 @@ class GameController(
     fun useTimeBoost() {
         if (status.isOver) return
         if (isVsAi && currentStone != playerColor) return
+        if (lanMode && !isMyLanTurn()) return
         if (powerupCount(PowerupType.TIMEBOOST) <= 0) return
         profile = PowerupSystem.consume(profile, PowerupType.TIMEBOOST)
         profile = DailyTaskSystem.onEvent(profile, TaskType.USE_POWERUP).first
@@ -461,8 +463,15 @@ class GameController(
             lanMode = false
             lanRole = LanRole.NONE
             lanConnected = false
+            lanStatus = ""
             restart()
         }
+    }
+
+    private fun isMyLanTurn(): Boolean {
+        if (!lanMode) return true
+        val myStone = if (lanRole == LanRole.HOST) Stone.BLACK else Stone.WHITE
+        return currentStone == myStone
     }
 
     fun lanHostIp(): String {
@@ -628,6 +637,7 @@ class GameController(
 
     private fun onTimeout() {
         if (status.isOver) return
+        if (lanMode && lanConnected) sendLan(LanMessage.Resign)
         val winner = currentStone.opponent
         sound.play(SoundType.TIMEOUT)
         endGame(if (winner == Stone.BLACK) GameStatus.BLACK_WIN else GameStatus.WHITE_WIN)
