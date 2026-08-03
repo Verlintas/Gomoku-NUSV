@@ -253,7 +253,26 @@ private val zh: Map<String, String> = mapOf(
         "reset_confirm2_title" to "再次确认（不可恢复）",
         "reset_confirm2_body" to "此操作无法撤销。建议先导出存档备份，再执行重置。确定继续吗？",
         "reset_confirm_final" to "确认重置",
-        "reset_done" to "存档已重置为全新状态"
+        "reset_done" to "存档已重置为全新状态",
+        "mode_lan" to "局域网",
+        "lan_battle" to "局域网对战",
+        "lan_you_black" to "黑方（房主）",
+        "lan_you_white" to "白方（加入者）",
+        "lan_setup" to "创建房间或输入对方 IP 加入对局",
+        "lan_create" to "创建房间",
+        "lan_join" to "加入房间",
+        "lan_ip_hint" to "输入对方 IP，如 192.168.1.100",
+        "lan_ip_label" to "本机 IP",
+        "lan_port" to "端口 {n}",
+        "lan_waiting" to "等待对手连接...",
+        "lan_connecting" to "连接中...",
+        "lan_connected" to "已连接，开始对局",
+        "lan_host_failed" to "创建房间失败（端口被占用？）",
+        "lan_join_failed" to "连接失败，请检查 IP 与网络",
+        "lan_disconnected" to "对方已断开连接",
+        "lan_unsupported" to "当前平台暂不支持局域网联机",
+        "lan_cancel" to "取消",
+        "lan_leave" to "退出联机"
     )
 
 private val en: Map<String, String> = mapOf(
@@ -494,7 +513,26 @@ private val en: Map<String, String> = mapOf(
         "reset_confirm2_title" to "Confirm again (cannot be undone)",
         "reset_confirm2_body" to "This cannot be undone. Consider exporting a backup first. Continue?",
         "reset_confirm_final" to "Reset Now",
-        "reset_done" to "Save has been reset to a fresh state"
+        "reset_done" to "Save has been reset to a fresh state",
+        "mode_lan" to "LAN",
+        "lan_battle" to "LAN Battle",
+        "lan_you_black" to "Black (host)",
+        "lan_you_white" to "White (joiner)",
+        "lan_setup" to "Create a room or enter the opponent's IP to join",
+        "lan_create" to "Create Room",
+        "lan_join" to "Join Room",
+        "lan_ip_hint" to "Enter host IP, e.g. 192.168.1.100",
+        "lan_ip_label" to "Your IP",
+        "lan_port" to "port {n}",
+        "lan_waiting" to "Waiting for opponent...",
+        "lan_connecting" to "Connecting...",
+        "lan_connected" to "Connected, let's play",
+        "lan_host_failed" to "Failed to create room (port in use?)",
+        "lan_join_failed" to "Connection failed — check the IP and network",
+        "lan_disconnected" to "Opponent disconnected",
+        "lan_unsupported" to "LAN play is not supported on this platform",
+        "lan_cancel" to "Cancel",
+        "lan_leave" to "Leave"
     )
 
     fun t(key: String, language: Language = Language.ZH): String =

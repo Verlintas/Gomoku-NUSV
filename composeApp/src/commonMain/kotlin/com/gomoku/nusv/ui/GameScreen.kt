@@ -39,9 +39,13 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
+import androidx.compose.material3.TextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -386,14 +390,32 @@ private fun ControlPanel(
             ChipGroup(I18n.t("mode"), theme) {
                 ChoiceChip(
                     I18n.t("mode_pvp"),
-                    config.mode == GameMode.PVP,
+                    config.mode == GameMode.PVP && !controller.lanMode,
                     theme
-                ) { controller.setMode(GameMode.PVP) }
+                ) {
+                    controller.setMode(GameMode.PVP)
+                    controller.stopLan()
+                }
                 ChoiceChip(
                     I18n.t("mode_ai"),
-                    config.mode == GameMode.VS_AI,
+                    config.mode == GameMode.VS_AI && !controller.lanMode,
                     theme
-                ) { controller.setMode(GameMode.VS_AI) }
+                ) {
+                    controller.setMode(GameMode.VS_AI)
+                    controller.stopLan()
+                }
+                ChoiceChip(
+                    I18n.t("mode_lan"),
+                    controller.lanMode,
+                    theme
+                ) {
+                    if (!controller.lanMode) {
+                        controller.enterLanSetup()
+                    }
+                }
+            }
+            if (controller.lanMode) {
+                LanPanel(controller, theme)
             }
             if (controller.isVsAi) {
                 ChipGroup(I18n.t("difficulty"), theme) {
@@ -488,10 +510,17 @@ private fun ControlPanel(
 
 @Composable
 private fun TurnIndicator(controller: GameController, theme: BoardTheme) {
-    val playerLabel = if (controller.isVsAi) {
-        I18n.t("you_vs_ai", "player" to stoneName(controller.playerColor))
-    } else {
-        I18n.t("pvp_label")
+    val playerLabel = when {
+        controller.lanMode -> {
+            val role = when (controller.lanRole) {
+                com.gomoku.nusv.ui.LanRole.HOST -> " · " + I18n.t("lan_you_black")
+                com.gomoku.nusv.ui.LanRole.CLIENT -> " · " + I18n.t("lan_you_white")
+                else -> ""
+            }
+            I18n.t("lan_battle") + role
+        }
+        controller.isVsAi -> I18n.t("you_vs_ai", "player" to stoneName(controller.playerColor))
+        else -> I18n.t("pvp_label")
     }
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(playerLabel, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = theme.textPrimary)
@@ -713,3 +742,106 @@ private fun difficultyName(d: Difficulty): String = I18n.t(
         Difficulty.HARD -> "diff_hard"
     }
 )
+
+@Composable
+private fun LanPanel(controller: GameController, theme: BoardTheme) {
+    var joinAddress by remember { mutableStateOf("") }
+
+    if (!controller.lanConnected) {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = theme.uiSurfaceVariant),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    when (controller.lanStatus) {
+                        "lan_waiting" -> I18n.t("lan_waiting") + "  " + I18n.t("lan_port", "n" to "${com.gomoku.nusv.ui.GameController.LAN_PORT}")
+                        "lan_connecting" -> I18n.t("lan_connecting")
+                        "lan_host_failed" -> I18n.t("lan_host_failed")
+                        "lan_join_failed" -> I18n.t("lan_join_failed")
+                        else -> I18n.t("lan_setup")
+                    },
+                    fontSize = 12.sp,
+                    color = theme.textPrimary
+                )
+                if (controller.lanStatus == "lan_waiting" || controller.lanStatus == "") {
+                    Text(
+                        I18n.t("lan_ip_label") + ": " + controller.lanHostIp().ifBlank { "-" },
+                        fontSize = 12.sp,
+                        color = theme.textSecondary
+                    )
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(
+                        onClick = { controller.startLanHost() },
+                        enabled = controller.lanStatus != "lan_waiting" && controller.lanStatus != "lan_connecting",
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(I18n.t("lan_create"), fontSize = 13.sp)
+                    }
+                    Button(
+                        onClick = {
+                            if (joinAddress.isNotBlank()) controller.startLanClient(joinAddress.trim())
+                        },
+                        enabled = joinAddress.isNotBlank() &&
+                            controller.lanStatus != "lan_waiting" && controller.lanStatus != "lan_connecting",
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(I18n.t("lan_join"), fontSize = 13.sp)
+                    }
+                }
+                TextField(
+                    value = joinAddress,
+                    onValueChange = { joinAddress = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = {
+                        Text(I18n.t("lan_ip_hint"), fontSize = 12.sp, color = theme.textSecondary)
+                    },
+                    singleLine = true,
+                    textStyle = androidx.compose.ui.text.TextStyle(fontSize = 13.sp)
+                )
+                if (!controller.lanAvailable()) {
+                    Text(I18n.t("lan_unsupported"), fontSize = 12.sp, color = Color(0xFFC62828))
+                }
+                TextButton(onClick = { controller.stopLan() }) {
+                    Text(I18n.t("lan_cancel"), fontSize = 13.sp)
+                }
+            }
+        }
+    } else {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = theme.uiSurfaceVariant),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Text(
+                    I18n.t("lan_connected"),
+                    fontSize = 13.sp,
+                    color = theme.textPrimary,
+                    modifier = Modifier.weight(1f)
+                )
+                OutlinedButton(onClick = { controller.stopLan() }) {
+                    Text(I18n.t("lan_leave"), fontSize = 13.sp)
+                }
+            }
+        }
+    }
+    if (controller.lanStatus == "lan_disconnected") {
+        Text(
+            I18n.t("lan_disconnected"),
+            fontSize = 12.sp,
+            color = Color(0xFFC62828)
+        )
+    }
+}

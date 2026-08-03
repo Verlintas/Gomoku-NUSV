@@ -32,6 +32,12 @@ import com.gomoku.nusv.model.Position
 import com.gomoku.nusv.model.Stone
 import com.gomoku.nusv.APP_VERSION
 import com.gomoku.nusv.i18n.I18n
+import com.gomoku.nusv.net.LanMessage
+import com.gomoku.nusv.net.LanProtocol
+import com.gomoku.nusv.net.LanSocket
+import com.gomoku.nusv.net.lanClient
+import com.gomoku.nusv.net.lanHost
+import com.gomoku.nusv.net.lanSupported
 import com.gomoku.nusv.sound.SoundPlayer
 import com.gomoku.nusv.sound.SoundType
 import com.gomoku.nusv.ui.effects.EffectRegistry
@@ -69,6 +75,14 @@ class GameController(
     var newlyUnlocked by mutableStateOf<List<Achievement>>(emptyList())
     var showAchievementToast by mutableStateOf(false)
     var effectsEnabled by mutableStateOf(store.loadEffectsEnabled())
+
+    // ---------- 局域网对战 ----------
+    var lanMode by mutableStateOf(false)
+    var lanRole by mutableStateOf(LanRole.NONE)
+    var lanConnected by mutableStateOf(false)
+    var lanStatus by mutableStateOf("")
+    var lanHostAddress by mutableStateOf("")
+    private var lanSocket: LanSocket? = null
     var aiHint by mutableStateOf<Position?>(null)
     var themeIdAtStart by mutableStateOf("")
     private var activeThemeId: String = ""
@@ -97,11 +111,15 @@ class GameController(
     fun handleTap(row: Int, col: Int) {
         if (status.isOver || aiThinking) return
         if (config.mode == GameMode.VS_AI && currentStone != playerColor) return
+        if (lanMode) {
+            val myStone = if (lanRole == LanRole.HOST) Stone.BLACK else Stone.WHITE
+            if (currentStone != myStone) return
+        }
         if (!board.isEmpty(row, col)) return
         place(row, col)
     }
 
-    private fun place(row: Int, col: Int) {
+    private fun place(row: Int, col: Int, sendToLan: Boolean = true) {
         aiHint = null
         board.set(row, col, currentStone)
         val move = Move(Position(row, col), currentStone)
@@ -120,6 +138,9 @@ class GameController(
         currentStone = currentStone.opponent
         turnSecondsLeft = config.secondsPerMove
         persistGame()
+        if (sendToLan && lanMode && lanConnected) {
+            sendLan(LanMessage.Move(row, col))
+        }
         if (isVsAi && currentStone != playerColor) scheduleAiMove()
     }
 
@@ -183,7 +204,7 @@ class GameController(
         store.saveSavedGame(null)
     }
 
-    fun undo() {
+    fun undo(sendToLan: Boolean = true) {
         if (aiThinking) return
         if (moveHistory.isEmpty()) return
         var count = if (isVsAi) 2 else 1
@@ -197,6 +218,7 @@ class GameController(
             restored = true
         }
         if (restored) {
+            if (sendToLan && lanMode && lanConnected) sendLan(LanMessage.Undo)
             status = GameStatus.PLAYING
             lastMove = moveHistory.lastOrNull()?.pos
             turnSecondsLeft = config.secondsPerMove
@@ -218,6 +240,7 @@ class GameController(
 
     fun confirmResign() {
         resignRequested = false
+        if (lanMode && lanConnected) sendLan(LanMessage.Resign)
         val loser = currentStone
         endGame(if (loser == Stone.BLACK) GameStatus.WHITE_WIN else GameStatus.BLACK_WIN)
     }
@@ -226,7 +249,7 @@ class GameController(
         resignRequested = false
     }
 
-    fun restart() {
+    fun restart(sendToLan: Boolean = true) {
         aiJob?.cancel()
         timerJob?.cancel()
         board = Board(config.validBoardSize)
@@ -246,6 +269,7 @@ class GameController(
         boardVersion++
         store.saveSavedGame(null)
         startTimer()
+        if (sendToLan && lanMode && lanConnected) sendLan(LanMessage.Restart)
         if (isVsAi && playerColor != Stone.BLACK) scheduleAiMove()
     }
 
@@ -377,7 +401,146 @@ class GameController(
         store.saveProfile(profile)
     }
 
-    // ---------- 重置存档 ----------
+    // ---------- 局域网对战 ----------
+
+    fun lanAvailable(): Boolean = lanSupported()
+
+    fun enterLanSetup() {
+        if (lanMode) return
+        setMode(GameMode.PVP)
+        lanMode = true
+        lanRole = LanRole.NONE
+        lanConnected = false
+        lanStatus = ""
+    }
+
+    fun startLanHost() {
+        if (lanMode) return
+        lanMode = true
+        lanRole = LanRole.HOST
+        lanConnected = false
+        lanStatus = "lan_waiting"
+        scope.launch {
+            val socket = withContext(Dispatchers.Default) { lanHost(LAN_PORT) }
+            if (socket == null) {
+                lanMode = false
+                lanRole = LanRole.NONE
+                lanStatus = "lan_host_failed"
+            } else {
+                lanConnected = true
+                lanStatus = "lan_connected"
+                attachLanSocket(socket, isHost = true)
+            }
+        }
+    }
+
+    fun startLanClient(address: String) {
+        if (lanMode) return
+        lanMode = true
+        lanRole = LanRole.CLIENT
+        lanConnected = false
+        lanStatus = "lan_connecting"
+        scope.launch {
+            val socket = withContext(Dispatchers.Default) { lanClient(address, LAN_PORT) }
+            if (socket == null) {
+                lanMode = false
+                lanRole = LanRole.NONE
+                lanStatus = "lan_join_failed"
+            } else {
+                lanConnected = true
+                lanStatus = "lan_connected"
+                attachLanSocket(socket, isHost = false)
+            }
+        }
+    }
+
+    fun stopLan() {
+        lanSocket?.close()
+        lanSocket = null
+        if (lanMode) {
+            lanMode = false
+            lanRole = LanRole.NONE
+            lanConnected = false
+            restart()
+        }
+    }
+
+    fun lanHostIp(): String {
+        // 优先取对外路由地址（局域网 IP）
+        val socket = java.net.Socket()
+        try {
+            socket.connect(java.net.InetSocketAddress("8.8.8.8", 80), 1500)
+            socket.localAddress.hostAddress?.let { if (it.isNotBlank()) return it }
+        } catch (_: Exception) {
+        } finally {
+            try { socket.close() } catch (_: Exception) {}
+        }
+        // 兜底：枚举本机非回环 IPv4 网卡
+        return try {
+            java.net.NetworkInterface.getNetworkInterfaces()
+                .toList()
+                .filter { it.isUp && !it.isLoopback && !it.isVirtual }
+                .flatMap { it.inetAddresses.toList() }
+                .mapNotNull { it.hostAddress }
+                .firstOrNull { it.contains(".") } ?: ""
+        } catch (_: Exception) {
+            ""
+        }
+    }
+
+    private fun attachLanSocket(socket: LanSocket, isHost: Boolean) {
+        lanSocket = socket
+        socket.start(
+            onLine = { line ->
+                LanProtocol.decode(line)?.let { handleLanMessage(it) }
+            },
+            onDisconnect = {
+                scope.launch {
+                    if (lanMode) {
+                        lanSocket = null
+                        lanMode = false
+                        lanRole = LanRole.NONE
+                        lanConnected = false
+                        lanStatus = "lan_disconnected"
+                        if (status == GameStatus.PLAYING) {
+                            status = GameStatus.DRAW
+                            showResultDialog = true
+                        }
+                    }
+                }
+            }
+        )
+    }
+
+    private fun handleLanMessage(message: LanMessage) {
+        when (message) {
+            is LanMessage.Hello -> {}
+            is LanMessage.Move -> {
+                if (status == GameStatus.PLAYING && board.isEmpty(message.row, message.col)) {
+                    place(message.row, message.col, sendToLan = false)
+                }
+            }
+            is LanMessage.Undo -> undo(sendToLan = false)
+            is LanMessage.Restart -> restart(sendToLan = false)
+            is LanMessage.Resign -> {
+                if (status == GameStatus.PLAYING && moveHistory.isNotEmpty()) {
+                    val winner = currentStone
+                    endGame(if (winner == Stone.BLACK) GameStatus.BLACK_WIN else GameStatus.WHITE_WIN)
+                }
+            }
+            is LanMessage.Close -> stopLan()
+        }
+    }
+
+    private fun sendLan(message: LanMessage) {
+        if (lanMode && lanConnected) {
+            lanSocket?.send(LanProtocol.encode(message))
+        }
+    }
+
+    companion object {
+        const val LAN_PORT = 45678
+    }
 
     /** 重置存档到全新状态（新玩家，当前版本标记），不可恢复。 */
     fun resetProfile() {
@@ -506,3 +669,5 @@ class GameController(
         }
     }
 }
+
+enum class LanRole { NONE, HOST, CLIENT }

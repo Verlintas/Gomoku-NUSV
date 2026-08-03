@@ -5,6 +5,29 @@ All notable changes to Gomoku-NUSV are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-08-03
+
+### Added
+
+- **LAN (local network) battle** — play against another device on the same WiFi
+  network, no internet required:
+  - Host a room (TCP port 45678) and wait for the opponent, or join by entering
+    the host's IP address.
+  - Host plays Black, joiner plays White; moves, undo, restart and resign are
+    synchronized over a line-based JSON protocol.
+  - Connection status, host IP display (routed address with network-interface
+    fallback), disconnect detection with a draw settlement.
+  - Works on Android and all desktop platforms; iOS shows an unsupported notice
+    (socket adapter planned for a later version).
+- **LAN protocol tests** — message round-trips (JSON discriminator) and a real
+  loopback host/client socket exchange test.
+
+### 升级须知 / Upgrade Notes
+
+- **EN**: Updating to 1.5.0 resets the local save (new-player state). To keep
+  progress: export your save before updating and import it after.
+- **中文**: 本次更新会重置存档（新玩家状态）。想保留进度：更新前 设置 → 存档备份 → 导出存档；更新后导入恢复。
+
 ## Upgrade Notes / 升级须知
 
 > **EN — Updates reset the local save (by design).**
@@ -51,7 +74,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   wide up to large screens (responsive columns, wrapping chip groups, compact
   headers) for consistent experience across macOS / Windows / Android at any DPI.
 
-### Upgrade Notes / 升级须知（重要）
+### [1.5.0] - 2026-08-03
+
+### Added
+
+- **LAN (local network) battle** — play against another device on the same WiFi
+  network, no internet required:
+  - Host a room (TCP port 45678) and wait for the opponent, or join by entering
+    the host's IP address.
+  - Host plays Black, joiner plays White; moves, undo, restart and resign are
+    synchronized over a line-based JSON protocol.
+  - Connection status, host IP display (routed address with network-interface
+    fallback), disconnect detection with a draw settlement.
+  - Works on Android and all desktop platforms; iOS shows an unsupported notice
+    (socket adapter planned for a later version).
+- **LAN protocol tests** — message round-trips (JSON discriminator) and a real
+  loopback host/client socket exchange test.
+
+### 升级须知 / Upgrade Notes
+
+- **EN**: Updating to 1.5.0 resets the local save (new-player state). To keep
+  progress: export your save before updating and import it after.
+- **中文**: 本次更新会重置存档（新玩家状态）。想保留进度：更新前 设置 → 存档备份 → 导出存档；更新后导入恢复。
+
+## Upgrade Notes / 升级须知（重要）
 
 - **EN**: Updating to 1.4.6-compatibility resets the local save (new-player
   state). To keep progress: export your save before updating and import it after.
@@ -76,7 +122,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   first confirmation, then a second "cannot be undone" confirmation. It restores
   the game to a fresh state (stats, points, power-ups, sign-in, tasks).
 
-### Upgrade Notes / 升级须知（重要）
+### [1.5.0] - 2026-08-03
+
+### Added
+
+- **LAN (local network) battle** — play against another device on the same WiFi
+  network, no internet required:
+  - Host a room (TCP port 45678) and wait for the opponent, or join by entering
+    the host's IP address.
+  - Host plays Black, joiner plays White; moves, undo, restart and resign are
+    synchronized over a line-based JSON protocol.
+  - Connection status, host IP display (routed address with network-interface
+    fallback), disconnect detection with a draw settlement.
+  - Works on Android and all desktop platforms; iOS shows an unsupported notice
+    (socket adapter planned for a later version).
+- **LAN protocol tests** — message round-trips (JSON discriminator) and a real
+  loopback host/client socket exchange test.
+
+### 升级须知 / Upgrade Notes
+
+- **EN**: Updating to 1.5.0 resets the local save (new-player state). To keep
+  progress: export your save before updating and import it after.
+- **中文**: 本次更新会重置存档（新玩家状态）。想保留进度：更新前 设置 → 存档备份 → 导出存档；更新后导入恢复。
+
+## Upgrade Notes / 升级须知（重要）
 
 - **EN**: Updating to 1.4.6 resets the local save (new-player state). To keep
   progress: export your save before updating and import it after.
@@ -102,7 +171,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   references an unowned item.
 - Removed dead per-effect toggle code.
 
-### Upgrade Notes / 升级须知（重要）
+### [1.5.0] - 2026-08-03
+
+### Added
+
+- **LAN (local network) battle** — play against another device on the same WiFi
+  network, no internet required:
+  - Host a room (TCP port 45678) and wait for the opponent, or join by entering
+    the host's IP address.
+  - Host plays Black, joiner plays White; moves, undo, restart and resign are
+    synchronized over a line-based JSON protocol.
+  - Connection status, host IP display (routed address with network-interface
+    fallback), disconnect detection with a draw settlement.
+  - Works on Android and all desktop platforms; iOS shows an unsupported notice
+    (socket adapter planned for a later version).
+- **LAN protocol tests** — message round-trips (JSON discriminator) and a real
+  loopback host/client socket exchange test.
+
+### 升级须知 / Upgrade Notes
+
+- **EN**: Updating to 1.5.0 resets the local save (new-player state). To keep
+  progress: export your save before updating and import it after.
+- **中文**: 本次更新会重置存档（新玩家状态）。想保留进度：更新前 设置 → 存档备份 → 导出存档；更新后导入恢复。
+
+## Upgrade Notes / 升级须知（重要）
 
 - **EN**: Updating to 1.4.5 resets the local save (new-player state). To keep
   progress: export your save before updating and import it after.
@@ -120,7 +212,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the current version so they are never reset again.
 - Legacy plain-text profile keys from 1.3.x are cleaned up after loading.
 
-### Upgrade Notes / 升级须知（重要）
+### [1.5.0] - 2026-08-03
+
+### Added
+
+- **LAN (local network) battle** — play against another device on the same WiFi
+  network, no internet required:
+  - Host a room (TCP port 45678) and wait for the opponent, or join by entering
+    the host's IP address.
+  - Host plays Black, joiner plays White; moves, undo, restart and resign are
+    synchronized over a line-based JSON protocol.
+  - Connection status, host IP display (routed address with network-interface
+    fallback), disconnect detection with a draw settlement.
+  - Works on Android and all desktop platforms; iOS shows an unsupported notice
+    (socket adapter planned for a later version).
+- **LAN protocol tests** — message round-trips (JSON discriminator) and a real
+  loopback host/client socket exchange test.
+
+### 升级须知 / Upgrade Notes
+
+- **EN**: Updating to 1.5.0 resets the local save (new-player state). To keep
+  progress: export your save before updating and import it after.
+- **中文**: 本次更新会重置存档（新玩家状态）。想保留进度：更新前 设置 → 存档备份 → 导出存档；更新后导入恢复。
+
+## Upgrade Notes / 升级须知（重要）
 
 - **EN**: Updating to 1.4.4 resets the local save (new-player state). To keep
   progress: export your save before updating and import it after. Users coming
@@ -141,7 +256,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - The shop sells hints (100 pts each) and time boosts (80 pts each) in packs
     of 1 / 5 / 10, giving points a direct gameplay use.
 
-### Upgrade Notes / 升级须知
+### [1.5.0] - 2026-08-03
+
+### Added
+
+- **LAN (local network) battle** — play against another device on the same WiFi
+  network, no internet required:
+  - Host a room (TCP port 45678) and wait for the opponent, or join by entering
+    the host's IP address.
+  - Host plays Black, joiner plays White; moves, undo, restart and resign are
+    synchronized over a line-based JSON protocol.
+  - Connection status, host IP display (routed address with network-interface
+    fallback), disconnect detection with a draw settlement.
+  - Works on Android and all desktop platforms; iOS shows an unsupported notice
+    (socket adapter planned for a later version).
+- **LAN protocol tests** — message round-trips (JSON discriminator) and a real
+  loopback host/client socket exchange test.
+
+### 升级须知 / Upgrade Notes
+
+- **EN**: Updating to 1.5.0 resets the local save (new-player state). To keep
+  progress: export your save before updating and import it after.
+- **中文**: 本次更新会重置存档（新玩家状态）。想保留进度：更新前 设置 → 存档备份 → 导出存档；更新后导入恢复。
+
+## Upgrade Notes / 升级须知
 
 - **EN**: Every new app version starts fresh — old saves are not kept. To carry
   progress over: export your save before updating and import it after.
