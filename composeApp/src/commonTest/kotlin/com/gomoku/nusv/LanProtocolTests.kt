@@ -94,3 +94,33 @@ class LanSocketRoundTripTests {
         host!!.close()
     }
 }
+
+class LanDiscoveryLoopbackTests {
+
+    @Test
+    fun udpDiscoveryLoopback() {
+        val discovery = com.gomoku.nusv.net.LanDiscovery()
+        try {
+            val ok = discovery.startHost("loopback-room")
+            assertTrue(ok, "udp host should bind")
+            Thread.sleep(300)
+
+            var found: com.gomoku.nusv.net.LanRoom? = null
+            val done = java.util.concurrent.atomic.AtomicBoolean(false)
+            discovery.scan(
+                broadcastAddress = "127.0.0.1",
+                onFound = { found = it },
+                onDone = { done.set(true) }
+            )
+            val deadline = System.currentTimeMillis() + 6000
+            while ((found == null || !done.get()) && System.currentTimeMillis() < deadline) {
+                Thread.sleep(50)
+            }
+            assertNotNull(found, "loopback scan should discover the host room")
+            assertEquals("loopback-room", found?.name)
+            assertTrue(done.get(), "scan should finish")
+        } finally {
+            discovery.stop()
+        }
+    }
+}

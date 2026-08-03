@@ -30,9 +30,20 @@ sealed class LanMessage {
     @Serializable
     @SerialName("close")
     data object Close : LanMessage()
+
+    @Serializable
+    @SerialName("discover")
+    data object Discover : LanMessage()
+
+    @Serializable
+    @SerialName("offer")
+    data class Offer(val name: String, val port: Int = LanProtocol.LAN_PORT) : LanMessage()
 }
 
 object LanProtocol {
+    const val LAN_PORT = 45678
+    const val DISCOVER_PORT = 45679
+
     val json = Json { ignoreUnknownKeys = true }
 
     fun encode(msg: LanMessage): String = json.encodeToString(msg)

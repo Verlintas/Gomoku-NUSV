@@ -273,7 +273,15 @@ private val zh: Map<String, String> = mapOf(
         "lan_unsupported" to "当前平台暂不支持局域网联机",
         "lan_cancel" to "取消",
         "lan_leave" to "退出联机",
-        "lan_rejoin_hint" to "对方已断开，可重新创建房间或加入"
+        "lan_rejoin_hint" to "对方已断开，可重新创建房间或加入",
+        "lan_create_section" to "创建房间",
+        "lan_join_section" to "加入游戏（扫描局域网）",
+        "lan_room_name_hint" to "输入房间名，如：天台五子棋",
+        "lan_scan" to "扫描局域网房间",
+        "lan_scanning" to "扫描中...",
+        "lan_scanning_hint" to "正在搜索同一网络内的房间，约 2 秒",
+        "lan_no_rooms" to "未发现房间，请确认对方已创建房间且两台设备在同一网络",
+        "lan_host_udp_failed" to "广播服务启动失败（端口被占用），对手需手动输入 IP 加入"
     )
 
 private val en: Map<String, String> = mapOf(
@@ -534,7 +542,15 @@ private val en: Map<String, String> = mapOf(
         "lan_unsupported" to "LAN play is not supported on this platform",
         "lan_cancel" to "Cancel",
         "lan_leave" to "Leave",
-        "lan_rejoin_hint" to "The opponent left — create a room or join again"
+        "lan_rejoin_hint" to "The opponent left — create a room or join again",
+        "lan_create_section" to "Create a room",
+        "lan_join_section" to "Join (scan the LAN)",
+        "lan_room_name_hint" to "Room name, e.g. Rooftop Gomoku",
+        "lan_scan" to "Scan for rooms",
+        "lan_scanning" to "Scanning...",
+        "lan_scanning_hint" to "Searching the local network for rooms, ~2 s",
+        "lan_no_rooms" to "No rooms found — make sure the opponent created a room and both devices are on the same network",
+        "lan_host_udp_failed" to "Broadcast failed (port in use) — the opponent can still join by IP"
     )
 
     fun t(key: String, language: Language = Language.ZH): String =

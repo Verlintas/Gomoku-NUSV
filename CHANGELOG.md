@@ -5,6 +5,24 @@ All notable changes to Gomoku-NUSV are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.2] - 2026-08-03
+
+### Added
+
+- **LAN room discovery** — no more typing IP addresses:
+  - Create a room with a custom **room name**; the host broadcasts it over UDP.
+  - Join by pressing **Scan for rooms**: the app finds every room on the local
+    network (name + IP) and joins with one tap.
+  - UDP broadcast fallback notice if the discovery port is busy (IP join still
+    available internally).
+  - LAN IP display now prefers the routed LAN address over loopback.
+
+### 升级须知 / Upgrade Notes
+
+- **EN**: Updating to 1.5.2 resets the local save (new-player state). To keep
+  progress: export your save before updating and import it after.
+- **中文**: 本次更新会重置存档（新玩家状态）。想保留进度：更新前 设置 → 存档备份 → 导出存档；更新后导入恢复。
+
 ## [1.5.1] - 2026-08-03
 
 ### Fixed (LAN battle)
@@ -94,7 +112,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   wide up to large screens (responsive columns, wrapping chip groups, compact
   headers) for consistent experience across macOS / Windows / Android at any DPI.
 
-### [1.5.1] - 2026-08-03
+### [1.5.2] - 2026-08-03
+
+### Added
+
+- **LAN room discovery** — no more typing IP addresses:
+  - Create a room with a custom **room name**; the host broadcasts it over UDP.
+  - Join by pressing **Scan for rooms**: the app finds every room on the local
+    network (name + IP) and joins with one tap.
+  - UDP broadcast fallback notice if the discovery port is busy (IP join still
+    available internally).
+  - LAN IP display now prefers the routed LAN address over loopback.
+
+### 升级须知 / Upgrade Notes
+
+- **EN**: Updating to 1.5.2 resets the local save (new-player state). To keep
+  progress: export your save before updating and import it after.
+- **中文**: 本次更新会重置存档（新玩家状态）。想保留进度：更新前 设置 → 存档备份 → 导出存档；更新后导入恢复。
+
+## [1.5.1] - 2026-08-03
 
 ### Fixed (LAN battle)
 
@@ -162,7 +198,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   first confirmation, then a second "cannot be undone" confirmation. It restores
   the game to a fresh state (stats, points, power-ups, sign-in, tasks).
 
-### [1.5.1] - 2026-08-03
+### [1.5.2] - 2026-08-03
+
+### Added
+
+- **LAN room discovery** — no more typing IP addresses:
+  - Create a room with a custom **room name**; the host broadcasts it over UDP.
+  - Join by pressing **Scan for rooms**: the app finds every room on the local
+    network (name + IP) and joins with one tap.
+  - UDP broadcast fallback notice if the discovery port is busy (IP join still
+    available internally).
+  - LAN IP display now prefers the routed LAN address over loopback.
+
+### 升级须知 / Upgrade Notes
+
+- **EN**: Updating to 1.5.2 resets the local save (new-player state). To keep
+  progress: export your save before updating and import it after.
+- **中文**: 本次更新会重置存档（新玩家状态）。想保留进度：更新前 设置 → 存档备份 → 导出存档；更新后导入恢复。
+
+## [1.5.1] - 2026-08-03
 
 ### Fixed (LAN battle)
 
@@ -231,7 +285,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   references an unowned item.
 - Removed dead per-effect toggle code.
 
-### [1.5.1] - 2026-08-03
+### [1.5.2] - 2026-08-03
+
+### Added
+
+- **LAN room discovery** — no more typing IP addresses:
+  - Create a room with a custom **room name**; the host broadcasts it over UDP.
+  - Join by pressing **Scan for rooms**: the app finds every room on the local
+    network (name + IP) and joins with one tap.
+  - UDP broadcast fallback notice if the discovery port is busy (IP join still
+    available internally).
+  - LAN IP display now prefers the routed LAN address over loopback.
+
+### 升级须知 / Upgrade Notes
+
+- **EN**: Updating to 1.5.2 resets the local save (new-player state). To keep
+  progress: export your save before updating and import it after.
+- **中文**: 本次更新会重置存档（新玩家状态）。想保留进度：更新前 设置 → 存档备份 → 导出存档；更新后导入恢复。
+
+## [1.5.1] - 2026-08-03
 
 ### Fixed (LAN battle)
 
@@ -292,7 +364,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the current version so they are never reset again.
 - Legacy plain-text profile keys from 1.3.x are cleaned up after loading.
 
-### [1.5.1] - 2026-08-03
+### [1.5.2] - 2026-08-03
+
+### Added
+
+- **LAN room discovery** — no more typing IP addresses:
+  - Create a room with a custom **room name**; the host broadcasts it over UDP.
+  - Join by pressing **Scan for rooms**: the app finds every room on the local
+    network (name + IP) and joins with one tap.
+  - UDP broadcast fallback notice if the discovery port is busy (IP join still
+    available internally).
+  - LAN IP display now prefers the routed LAN address over loopback.
+
+### 升级须知 / Upgrade Notes
+
+- **EN**: Updating to 1.5.2 resets the local save (new-player state). To keep
+  progress: export your save before updating and import it after.
+- **中文**: 本次更新会重置存档（新玩家状态）。想保留进度：更新前 设置 → 存档备份 → 导出存档；更新后导入恢复。
+
+## [1.5.1] - 2026-08-03
 
 ### Fixed (LAN battle)
 
@@ -356,7 +446,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - The shop sells hints (100 pts each) and time boosts (80 pts each) in packs
     of 1 / 5 / 10, giving points a direct gameplay use.
 
-### [1.5.1] - 2026-08-03
+### [1.5.2] - 2026-08-03
+
+### Added
+
+- **LAN room discovery** — no more typing IP addresses:
+  - Create a room with a custom **room name**; the host broadcasts it over UDP.
+  - Join by pressing **Scan for rooms**: the app finds every room on the local
+    network (name + IP) and joins with one tap.
+  - UDP broadcast fallback notice if the discovery port is busy (IP join still
+    available internally).
+  - LAN IP display now prefers the routed LAN address over loopback.
+
+### 升级须知 / Upgrade Notes
+
+- **EN**: Updating to 1.5.2 resets the local save (new-player state). To keep
+  progress: export your save before updating and import it after.
+- **中文**: 本次更新会重置存档（新玩家状态）。想保留进度：更新前 设置 → 存档备份 → 导出存档；更新后导入恢复。
+
+## [1.5.1] - 2026-08-03
 
 ### Fixed (LAN battle)
 

@@ -745,8 +745,6 @@ private fun difficultyName(d: Difficulty): String = I18n.t(
 
 @Composable
 private fun LanPanel(controller: GameController, theme: BoardTheme) {
-    var joinAddress by remember { mutableStateOf("") }
-
     if (!controller.lanConnected) {
         Card(
             colors = CardDefaults.cardColors(containerColor = theme.uiSurfaceVariant),
@@ -764,51 +762,86 @@ private fun LanPanel(controller: GameController, theme: BoardTheme) {
                         "lan_connecting" -> I18n.t("lan_connecting")
                         "lan_host_failed" -> I18n.t("lan_host_failed")
                         "lan_join_failed" -> I18n.t("lan_join_failed")
+                        "lan_host_udp_failed" -> I18n.t("lan_host_udp_failed")
                         "lan_disconnected" -> I18n.t("lan_disconnected")
                         else -> I18n.t("lan_setup")
                     },
                     fontSize = 12.sp,
                     color = theme.textPrimary
                 )
-                if (controller.lanStatus == "lan_waiting" || controller.lanStatus == "") {
+
+                if (controller.lanStatus == "lan_waiting" || controller.lanStatus == "" || controller.lanStatus == "lan_host_udp_failed") {
                     Text(
                         I18n.t("lan_ip_label") + ": " + controller.lanHostIp().ifBlank { "-" },
                         fontSize = 12.sp,
                         color = theme.textSecondary
                     )
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(
-                        onClick = { controller.startLanHost() },
-                        enabled = controller.lanStatus != "lan_waiting" && controller.lanStatus != "lan_connecting",
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(I18n.t("lan_create"), fontSize = 13.sp)
-                    }
-                    Button(
-                        onClick = {
-                            if (joinAddress.isNotBlank()) controller.startLanClient(joinAddress.trim())
-                        },
-                        enabled = joinAddress.isNotBlank() &&
-                            controller.lanStatus != "lan_waiting" && controller.lanStatus != "lan_connecting",
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(I18n.t("lan_join"), fontSize = 13.sp)
-                    }
-                }
-                TextField(
-                    value = joinAddress,
-                    onValueChange = { joinAddress = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = {
-                        Text(I18n.t("lan_ip_hint"), fontSize = 12.sp, color = theme.textSecondary)
-                    },
-                    singleLine = true,
-                    textStyle = androidx.compose.ui.text.TextStyle(fontSize = 13.sp)
-                )
+
                 if (!controller.lanAvailable()) {
                     Text(I18n.t("lan_unsupported"), fontSize = 12.sp, color = Color(0xFFC62828))
                 }
+
+                Text(I18n.t("lan_create_section"), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = theme.textSecondary)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    TextField(
+                        value = controller.lanRoomName,
+                        onValueChange = { controller.lanRoomName = it },
+                        modifier = Modifier.weight(1f),
+                        placeholder = {
+                            Text(I18n.t("lan_room_name_hint"), fontSize = 12.sp, color = theme.textSecondary)
+                        },
+                        singleLine = true,
+                        textStyle = androidx.compose.ui.text.TextStyle(fontSize = 13.sp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Button(
+                        onClick = { controller.startLanHost() },
+                        enabled = controller.lanStatus != "lan_waiting" && controller.lanStatus != "lan_connecting"
+                    ) {
+                        Text(I18n.t("lan_create"), fontSize = 13.sp)
+                    }
+                }
+
+                Text(I18n.t("lan_join_section"), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = theme.textSecondary)
+                Button(
+                    onClick = { controller.scanLanRooms() },
+                    enabled = !controller.scanning && controller.lanStatus != "lan_waiting" && controller.lanStatus != "lan_connecting",
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(if (controller.scanning) I18n.t("lan_scanning") else I18n.t("lan_scan"), fontSize = 13.sp)
+                }
+                if (controller.scanning) {
+                    Text(I18n.t("lan_scanning_hint"), fontSize = 12.sp, color = theme.textSecondary)
+                } else if (controller.discoveredRooms.isEmpty() && controller.lanStatus != "" && controller.lanStatus != "lan_setup") {
+                    Text(I18n.t("lan_no_rooms"), fontSize = 12.sp, color = theme.textSecondary)
+                }
+                controller.discoveredRooms.forEach { room ->
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = theme.uiSurface),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Column(Modifier.weight(1f)) {
+                                Text(room.name, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = theme.textPrimary)
+                                Text(room.host, fontSize = 11.sp, color = theme.textSecondary)
+                            }
+                            Button(
+                                onClick = { controller.joinLanRoom(room) },
+                                enabled = controller.lanStatus != "lan_waiting" && controller.lanStatus != "lan_connecting"
+                            ) {
+                                Text(I18n.t("lan_join"), fontSize = 13.sp)
+                            }
+                        }
+                    }
+                }
+
                 TextButton(onClick = { controller.stopLan() }) {
                     Text(I18n.t("lan_cancel"), fontSize = 13.sp)
                 }

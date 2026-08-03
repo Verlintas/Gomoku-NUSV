@@ -32,9 +32,11 @@ import com.gomoku.nusv.model.Position
 import com.gomoku.nusv.model.Stone
 import com.gomoku.nusv.APP_VERSION
 import com.gomoku.nusv.i18n.I18n
+import com.gomoku.nusv.net.LanDiscovery
 import com.gomoku.nusv.net.LanMessage
 import com.gomoku.nusv.net.LanProtocol
 import com.gomoku.nusv.net.LanSocket
+import com.gomoku.nusv.net.LanRoom
 import com.gomoku.nusv.net.lanClient
 import com.gomoku.nusv.net.lanHost
 import com.gomoku.nusv.net.lanSupported
@@ -82,6 +84,10 @@ class GameController(
     var lanConnected by mutableStateOf(false)
     var lanStatus by mutableStateOf("")
     var lanHostAddress by mutableStateOf("")
+    var lanRoomName by mutableStateOf("")
+    var discoveredRooms by mutableStateOf<List<LanRoom>>(emptyList())
+    var scanning by mutableStateOf(false)
+    private val discovery = LanDiscovery()
     private var lanSocket: LanSocket? = null
     var aiHint by mutableStateOf<Position?>(null)
     var themeIdAtStart by mutableStateOf("")
@@ -416,15 +422,21 @@ class GameController(
         lanStatus = ""
     }
 
-    fun startLanHost() {
+    fun startLanHost(roomName: String = lanRoomName) {
         if (lanMode) return
         lanMode = true
         lanRole = LanRole.HOST
         lanConnected = false
         lanStatus = "lan_waiting"
+        val name = roomName.ifBlank { "Gomoku-NUSV" }
+        if (!discovery.startHost(name)) {
+            // UDP 广播失败不影响 TCP 对局（对手可手动/列表加入前提是广播可用；失败仅提示）
+            lanStatus = "lan_host_udp_failed"
+        }
         scope.launch {
             val socket = withContext(Dispatchers.Default) { lanHost(LAN_PORT) }
             if (socket == null) {
+                discovery.stop()
                 lanMode = false
                 lanRole = LanRole.NONE
                 lanStatus = "lan_host_failed"
@@ -434,6 +446,34 @@ class GameController(
                 attachLanSocket(socket, isHost = true)
             }
         }
+    }
+
+    fun scanLanRooms() {
+        if (scanning || lanConnected) return
+        scanning = true
+        discoveredRooms = emptyList()
+        scope.launch {
+            withContext(Dispatchers.Default) {
+                discovery.scan(
+                    broadcastAddress = "255.255.255.255",
+                    onFound = { room ->
+                        scope.launch {
+                            if (room !in discoveredRooms) discoveredRooms = discoveredRooms + room
+                        }
+                    },
+                    onDone = {
+                        scope.launch {
+                            scanning = false
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    fun joinLanRoom(room: LanRoom) {
+        if (lanMode) return
+        startLanClient(room.host)
     }
 
     fun startLanClient(address: String) {
@@ -459,6 +499,7 @@ class GameController(
     fun stopLan() {
         lanSocket?.close()
         lanSocket = null
+        discovery.stop()
         if (lanMode) {
             lanMode = false
             lanRole = LanRole.NONE
@@ -491,7 +532,7 @@ class GameController(
                 .filter { it.isUp && !it.isLoopback && !it.isVirtual }
                 .flatMap { it.inetAddresses.toList() }
                 .mapNotNull { it.hostAddress }
-                .firstOrNull { it.contains(".") } ?: ""
+                .firstOrNull { it.contains(".") && !it.startsWith("127.") } ?: ""
         } catch (_: Exception) {
             ""
         }
@@ -538,6 +579,8 @@ class GameController(
                 }
             }
             is LanMessage.Close -> stopLan()
+            is LanMessage.Discover -> {}
+            is LanMessage.Offer -> {}
         }
     }
 
