@@ -22,8 +22,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.semantics.onClick
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.gomoku.nusv.model.Board
 import com.gomoku.nusv.model.Position
@@ -81,13 +79,6 @@ fun BoardView(
     Canvas(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .semantics {
-                onClick(label = "棋盘，点击棋盘中心落子") {
-                    val mid = board.size / 2
-                    onCellTap(mid, mid)
-                    true
-                }
-            }
             .pointerInput(board.size) {
                 detectTapGestures { offset ->
                     val layout = boardLayout(Size(this.size.width.toFloat(), this.size.height.toFloat()))
