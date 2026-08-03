@@ -76,6 +76,7 @@ without any server or network access.
 |---|---|---|
 | macOS | 11 (Big Sur)+ | Distributed as a `.dmg` |
 | Windows | 10 (64-bit)+ | Distributed as an `.msi` (built on Windows) |
+| Linux | Ubuntu 20.04+ (x64) | Distributed as a `.deb` (built on Linux) |
 | iOS | 14+ | Built with Xcode (`iosApp`) |
 | Android | API 26 (Android 8.0)+ | Distributed as an `.apk` |
 
@@ -164,6 +165,9 @@ Windows installers from macOS). This repository ships a ready-made builder:
   time), builds the MSI and uploads it as a build artifact / release asset.
 - Note: the Windows build is unsigned, so SmartScreen may warn on first run
   (More info → Run anyway).
+- The same pattern applies to Linux: `.github/workflows/linux-build.yml`
+  (Linux Installer Builder) produces the `.deb` on an Ubuntu runner and attaches
+  it to the release.
 
 Artifacts are produced under:
 

@@ -1,0 +1,47 @@
+name: Linux Installer Builder
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-deb:
+    name: Build Linux DEB
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK (AGP requires it during configuration)
+        uses: android-actions/setup-android@v3
+
+      - name: Build DEB installer
+        run: |
+          ./gradlew :composeApp:packageDeb --no-daemon --console=plain
+          ls -la composeApp/build/compose/binaries/main/deb/
+
+      - name: Upload DEB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Gomoku-NUSV-linux-deb
+          path: composeApp/build/compose/binaries/main/deb/*.deb
+          if-no-files-found: error
+
+      - name: Attach DEB to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          gh release upload "$TAG" composeApp/build/compose/binaries/main/deb/*.deb --clobber

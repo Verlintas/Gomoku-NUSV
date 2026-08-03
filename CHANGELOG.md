@@ -39,6 +39,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   alongside macOS and Android. All game logic, AI, saves and UI are shared; the
   desktop code uses only cross-platform JVM APIs (audio via javax.sound, dates via
   java.time), so the Windows build needs no code changes.
+- **Linux support** — a `.deb` installer is produced by the **Linux Installer
+  Builder** workflow (`.github/workflows/linux-build.yml`, built on an Ubuntu
+  runner). All game logic, AI, saves and UI are shared with the other platforms.
 - Desktop window opens with an OS-aware startup log; layout adapts from 700 px
   wide up to large screens (responsive columns, wrapping chip groups, compact
   headers) for consistent experience across macOS / Windows / Android at any DPI.
