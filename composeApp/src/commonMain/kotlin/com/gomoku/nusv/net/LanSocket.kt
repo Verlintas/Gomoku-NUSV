@@ -23,3 +23,7 @@ expect fun lanClient(host: String, port: Int): LanSocket?
 
 /** 平台是否支持局域网联机（iOS 暂不支持）。 */
 expect fun lanSupported(): Boolean
+
+
+/** 本机局域网 IPv4（用于房主展示；iOS 暂返回空）。 */
+expect fun lanHostIp(): String

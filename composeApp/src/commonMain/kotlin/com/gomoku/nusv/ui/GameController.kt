@@ -89,6 +89,7 @@ class GameController(
     var scanning by mutableStateOf(false)
     private val discovery = LanDiscovery()
     private var lanSocket: LanSocket? = null
+    private var scanGeneration = 0
     var aiHint by mutableStateOf<Position?>(null)
     var themeIdAtStart by mutableStateOf("")
     private var activeThemeId: String = ""
@@ -451,19 +452,23 @@ class GameController(
     fun scanLanRooms() {
         if (scanning || lanConnected) return
         scanning = true
+        scanGeneration++
+        val gen = scanGeneration
         discoveredRooms = emptyList()
         scope.launch {
             withContext(Dispatchers.Default) {
                 discovery.scan(
                     broadcastAddress = "255.255.255.255",
                     onFound = { room ->
-                        scope.launch {
-                            if (room !in discoveredRooms) discoveredRooms = discoveredRooms + room
+                        if (gen == scanGeneration) {
+                            scope.launch {
+                                if (room !in discoveredRooms) discoveredRooms = discoveredRooms + room
+                            }
                         }
                     },
                     onDone = {
-                        scope.launch {
-                            scanning = false
+                        if (gen == scanGeneration) {
+                            scope.launch { scanning = false }
                         }
                     }
                 )
@@ -497,6 +502,7 @@ class GameController(
     }
 
     fun stopLan() {
+        scanGeneration++
         lanSocket?.close()
         lanSocket = null
         discovery.stop()
@@ -515,34 +521,15 @@ class GameController(
         return currentStone == myStone
     }
 
-    fun lanHostIp(): String {
-        // 优先取对外路由地址（局域网 IP）
-        val socket = java.net.Socket()
-        try {
-            socket.connect(java.net.InetSocketAddress("8.8.8.8", 80), 1500)
-            socket.localAddress.hostAddress?.let { if (it.isNotBlank()) return it }
-        } catch (_: Exception) {
-        } finally {
-            try { socket.close() } catch (_: Exception) {}
-        }
-        // 兜底：枚举本机非回环 IPv4 网卡
-        return try {
-            java.net.NetworkInterface.getNetworkInterfaces()
-                .toList()
-                .filter { it.isUp && !it.isLoopback && !it.isVirtual }
-                .flatMap { it.inetAddresses.toList() }
-                .mapNotNull { it.hostAddress }
-                .firstOrNull { it.contains(".") && !it.startsWith("127.") } ?: ""
-        } catch (_: Exception) {
-            ""
-        }
-    }
+    fun lanHostIp(): String = com.gomoku.nusv.net.lanHostIp()
 
     private fun attachLanSocket(socket: LanSocket, isHost: Boolean) {
         lanSocket = socket
         socket.start(
             onLine = { line ->
-                LanProtocol.decode(line)?.let { handleLanMessage(it) }
+                scope.launch {
+                    LanProtocol.decode(line)?.let { handleLanMessage(it) }
+                }
             },
             onDisconnect = {
                 scope.launch {

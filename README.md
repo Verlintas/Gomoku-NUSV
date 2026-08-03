@@ -48,6 +48,10 @@ dependencies.
   colors, golden or azure stone glow, a dual-neon win line) and on power-up
   packs (hints 100 pts, time boosts 80 pts, packs of 1 / 5 / 10).
 - **Titles** — eight rank titles earned from your stats, displayed on the Home page.
+- **LAN battle** — play another device on the same WiFi: create a room with a
+  custom name (UDP broadcast) or scan the local network and join rooms with one
+  tap; moves / undo / restart / resign sync over TCP. Android + desktop; iOS
+  shows an unsupported notice.
 - **Minigame** — a Tic-Tac-Toe mode (vs AI or two-player) with its own win counter.
 - **Multi-page UI** — Home, Game, Minigame, Achievements, Stats, Titles, and
   Settings pages with smooth transitions.

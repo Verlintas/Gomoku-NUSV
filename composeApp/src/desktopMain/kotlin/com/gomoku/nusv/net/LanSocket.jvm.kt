@@ -80,3 +80,26 @@ actual fun lanClient(host: String, port: Int): LanSocket? {
 }
 
 actual fun lanSupported(): Boolean = true
+
+actual fun lanHostIp(): String {
+    // 优先取对外路由地址（局域网 IP）
+    val socket = java.net.Socket()
+    try {
+        socket.connect(java.net.InetSocketAddress("8.8.8.8", 80), 1500)
+        socket.localAddress.hostAddress?.let { if (it.isNotBlank()) return it }
+    } catch (_: Exception) {
+    } finally {
+        try { socket.close() } catch (_: Exception) {}
+    }
+    // 兜底：枚举本机非回环 IPv4 网卡
+    return try {
+        java.net.NetworkInterface.getNetworkInterfaces()
+            .toList()
+            .filter { it.isUp && !it.isLoopback && !it.isVirtual }
+            .flatMap { it.inetAddresses.toList() }
+            .mapNotNull { it.hostAddress }
+            .firstOrNull { it.contains(".") && !it.startsWith("127.") } ?: ""
+    } catch (_: Exception) {
+        ""
+    }
+}

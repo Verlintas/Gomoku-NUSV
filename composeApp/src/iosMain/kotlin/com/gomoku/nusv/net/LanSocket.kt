@@ -6,3 +6,6 @@ actual fun lanHost(port: Int): LanSocket? = null
 actual fun lanClient(host: String, port: Int): LanSocket? = null
 
 actual fun lanSupported(): Boolean = false
+
+
+actual fun lanHostIp(): String = ""

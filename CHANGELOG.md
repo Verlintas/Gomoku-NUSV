@@ -5,6 +5,33 @@ All notable changes to Gomoku-NUSV are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.3-super] - 2026-08-03
+
+### Fixed (stability)
+
+- **Critical**: incoming LAN messages were handled on the socket read thread and
+  mutated Compose state off the main thread — this could crash or corrupt the
+  UI. All LAN callbacks now dispatch to the main thread.
+- **Critical**: Android was missing the `INTERNET` / network-state permissions,
+  so LAN play failed on Android. Permissions added to the manifest.
+- **iOS build regression**: `lanHostIp()` used `java.net` in common code, which
+  broke the iOS target. It is now an expect/actual (JVM implementation moved to
+  desktop/android, iOS returns empty).
+- Stale LAN scans no longer update the room list after leaving/stopping LAN
+  (scan generation guard).
+
+### Compatibility
+
+- Verified builds for all platforms in one pass: Android (phone + automotive),
+  macOS dmg, Windows/Linux via Actions builders, iOS device + simulator
+  (Xcode build succeeded), and the full desktop test suite (all green).
+
+### 升级须知 / Upgrade Notes
+
+- **EN**: Updating to 1.5.3-super resets the local save (new-player state). To
+  keep progress: export your save before updating and import it after.
+- **中文**: 本次更新会重置存档（新玩家状态）。想保留进度：更新前 设置 → 存档备份 → 导出存档；更新后导入恢复。
+
 ## [1.5.2] - 2026-08-03
 
 ### Added
@@ -112,7 +139,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   wide up to large screens (responsive columns, wrapping chip groups, compact
   headers) for consistent experience across macOS / Windows / Android at any DPI.
 
-### [1.5.2] - 2026-08-03
+### [1.5.3-super] - 2026-08-03
+
+### Fixed (stability)
+
+- **Critical**: incoming LAN messages were handled on the socket read thread and
+  mutated Compose state off the main thread — this could crash or corrupt the
+  UI. All LAN callbacks now dispatch to the main thread.
+- **Critical**: Android was missing the `INTERNET` / network-state permissions,
+  so LAN play failed on Android. Permissions added to the manifest.
+- **iOS build regression**: `lanHostIp()` used `java.net` in common code, which
+  broke the iOS target. It is now an expect/actual (JVM implementation moved to
+  desktop/android, iOS returns empty).
+- Stale LAN scans no longer update the room list after leaving/stopping LAN
+  (scan generation guard).
+
+### Compatibility
+
+- Verified builds for all platforms in one pass: Android (phone + automotive),
+  macOS dmg, Windows/Linux via Actions builders, iOS device + simulator
+  (Xcode build succeeded), and the full desktop test suite (all green).
+
+### 升级须知 / Upgrade Notes
+
+- **EN**: Updating to 1.5.3-super resets the local save (new-player state). To
+  keep progress: export your save before updating and import it after.
+- **中文**: 本次更新会重置存档（新玩家状态）。想保留进度：更新前 设置 → 存档备份 → 导出存档；更新后导入恢复。
+
+## [1.5.2] - 2026-08-03
 
 ### Added
 
@@ -198,7 +252,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   first confirmation, then a second "cannot be undone" confirmation. It restores
   the game to a fresh state (stats, points, power-ups, sign-in, tasks).
 
-### [1.5.2] - 2026-08-03
+### [1.5.3-super] - 2026-08-03
+
+### Fixed (stability)
+
+- **Critical**: incoming LAN messages were handled on the socket read thread and
+  mutated Compose state off the main thread — this could crash or corrupt the
+  UI. All LAN callbacks now dispatch to the main thread.
+- **Critical**: Android was missing the `INTERNET` / network-state permissions,
+  so LAN play failed on Android. Permissions added to the manifest.
+- **iOS build regression**: `lanHostIp()` used `java.net` in common code, which
+  broke the iOS target. It is now an expect/actual (JVM implementation moved to
+  desktop/android, iOS returns empty).
+- Stale LAN scans no longer update the room list after leaving/stopping LAN
+  (scan generation guard).
+
+### Compatibility
+
+- Verified builds for all platforms in one pass: Android (phone + automotive),
+  macOS dmg, Windows/Linux via Actions builders, iOS device + simulator
+  (Xcode build succeeded), and the full desktop test suite (all green).
+
+### 升级须知 / Upgrade Notes
+
+- **EN**: Updating to 1.5.3-super resets the local save (new-player state). To
+  keep progress: export your save before updating and import it after.
+- **中文**: 本次更新会重置存档（新玩家状态）。想保留进度：更新前 设置 → 存档备份 → 导出存档；更新后导入恢复。
+
+## [1.5.2] - 2026-08-03
 
 ### Added
 
@@ -285,7 +366,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   references an unowned item.
 - Removed dead per-effect toggle code.
 
-### [1.5.2] - 2026-08-03
+### [1.5.3-super] - 2026-08-03
+
+### Fixed (stability)
+
+- **Critical**: incoming LAN messages were handled on the socket read thread and
+  mutated Compose state off the main thread — this could crash or corrupt the
+  UI. All LAN callbacks now dispatch to the main thread.
+- **Critical**: Android was missing the `INTERNET` / network-state permissions,
+  so LAN play failed on Android. Permissions added to the manifest.
+- **iOS build regression**: `lanHostIp()` used `java.net` in common code, which
+  broke the iOS target. It is now an expect/actual (JVM implementation moved to
+  desktop/android, iOS returns empty).
+- Stale LAN scans no longer update the room list after leaving/stopping LAN
+  (scan generation guard).
+
+### Compatibility
+
+- Verified builds for all platforms in one pass: Android (phone + automotive),
+  macOS dmg, Windows/Linux via Actions builders, iOS device + simulator
+  (Xcode build succeeded), and the full desktop test suite (all green).
+
+### 升级须知 / Upgrade Notes
+
+- **EN**: Updating to 1.5.3-super resets the local save (new-player state). To
+  keep progress: export your save before updating and import it after.
+- **中文**: 本次更新会重置存档（新玩家状态）。想保留进度：更新前 设置 → 存档备份 → 导出存档；更新后导入恢复。
+
+## [1.5.2] - 2026-08-03
 
 ### Added
 
@@ -364,7 +472,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the current version so they are never reset again.
 - Legacy plain-text profile keys from 1.3.x are cleaned up after loading.
 
-### [1.5.2] - 2026-08-03
+### [1.5.3-super] - 2026-08-03
+
+### Fixed (stability)
+
+- **Critical**: incoming LAN messages were handled on the socket read thread and
+  mutated Compose state off the main thread — this could crash or corrupt the
+  UI. All LAN callbacks now dispatch to the main thread.
+- **Critical**: Android was missing the `INTERNET` / network-state permissions,
+  so LAN play failed on Android. Permissions added to the manifest.
+- **iOS build regression**: `lanHostIp()` used `java.net` in common code, which
+  broke the iOS target. It is now an expect/actual (JVM implementation moved to
+  desktop/android, iOS returns empty).
+- Stale LAN scans no longer update the room list after leaving/stopping LAN
+  (scan generation guard).
+
+### Compatibility
+
+- Verified builds for all platforms in one pass: Android (phone + automotive),
+  macOS dmg, Windows/Linux via Actions builders, iOS device + simulator
+  (Xcode build succeeded), and the full desktop test suite (all green).
+
+### 升级须知 / Upgrade Notes
+
+- **EN**: Updating to 1.5.3-super resets the local save (new-player state). To
+  keep progress: export your save before updating and import it after.
+- **中文**: 本次更新会重置存档（新玩家状态）。想保留进度：更新前 设置 → 存档备份 → 导出存档；更新后导入恢复。
+
+## [1.5.2] - 2026-08-03
 
 ### Added
 
@@ -446,7 +581,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - The shop sells hints (100 pts each) and time boosts (80 pts each) in packs
     of 1 / 5 / 10, giving points a direct gameplay use.
 
-### [1.5.2] - 2026-08-03
+### [1.5.3-super] - 2026-08-03
+
+### Fixed (stability)
+
+- **Critical**: incoming LAN messages were handled on the socket read thread and
+  mutated Compose state off the main thread — this could crash or corrupt the
+  UI. All LAN callbacks now dispatch to the main thread.
+- **Critical**: Android was missing the `INTERNET` / network-state permissions,
+  so LAN play failed on Android. Permissions added to the manifest.
+- **iOS build regression**: `lanHostIp()` used `java.net` in common code, which
+  broke the iOS target. It is now an expect/actual (JVM implementation moved to
+  desktop/android, iOS returns empty).
+- Stale LAN scans no longer update the room list after leaving/stopping LAN
+  (scan generation guard).
+
+### Compatibility
+
+- Verified builds for all platforms in one pass: Android (phone + automotive),
+  macOS dmg, Windows/Linux via Actions builders, iOS device + simulator
+  (Xcode build succeeded), and the full desktop test suite (all green).
+
+### 升级须知 / Upgrade Notes
+
+- **EN**: Updating to 1.5.3-super resets the local save (new-player state). To
+  keep progress: export your save before updating and import it after.
+- **中文**: 本次更新会重置存档（新玩家状态）。想保留进度：更新前 设置 → 存档备份 → 导出存档；更新后导入恢复。
+
+## [1.5.2] - 2026-08-03
 
 ### Added
 
