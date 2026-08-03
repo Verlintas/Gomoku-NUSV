@@ -245,7 +245,13 @@ object I18n {
         "dec_glow_blue" to "湛蓝辉光",
         "dec_glow_blue_desc" to "落子时棋子散发湛蓝辉光",
         "dec_winline_neon" to "霓虹双色赢线",
-        "dec_winline_neon_desc" to "获胜连线变为霓虹双色流光"
+        "dec_winline_neon_desc" to "获胜连线变为霓虹双色流光",
+        "import_paste_hint" to "或直接粘贴存档内容到下方输入框：",
+        "import_paste_placeholder" to "将导出的存档 JSON 粘贴到这里",
+        "import_paste_confirm" to "从输入框导入",
+        "powerup_shop_title" to "对局道具",
+        "powerup_hint_desc" to "AI 推荐一步（本局高亮提示点）",
+        "powerup_time_desc" to "当前回合 +30 秒思考时间"
     )
 
     private val en: Map<String, String> = mapOf(
@@ -471,7 +477,13 @@ object I18n {
         "dec_glow_blue" to "Azure Glow",
         "dec_glow_blue_desc" to "Stones radiate an azure glow on placement",
         "dec_winline_neon" to "Neon Win Line",
-        "dec_winline_neon_desc" to "Winning line flows in dual neon colors"
+        "dec_winline_neon_desc" to "Winning line flows in dual neon colors",
+        "import_paste_hint" to "Or paste the save text directly below:",
+        "import_paste_placeholder" to "Paste the exported save JSON here",
+        "import_paste_confirm" to "Import from text box",
+        "powerup_shop_title" to "Game Power-ups",
+        "powerup_hint_desc" to "AI suggests the best move (highlighted on the board)",
+        "powerup_time_desc" to "+30 seconds for the current turn"
     )
 
     fun t(key: String): String = (if (currentLanguage == Language.ZH) zh else en)[key] ?: key

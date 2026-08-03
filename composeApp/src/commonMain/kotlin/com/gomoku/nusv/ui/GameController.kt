@@ -10,6 +10,8 @@ import com.gomoku.nusv.data.DailyTaskSystem
 import com.gomoku.nusv.data.Decoration
 import com.gomoku.nusv.data.DecorationRegistry
 import com.gomoku.nusv.data.DecorationType
+import com.gomoku.nusv.data.PowerupSystem
+import com.gomoku.nusv.data.PowerupType
 import com.gomoku.nusv.data.ProfileStore
 import com.gomoku.nusv.data.ScoreRules
 import com.gomoku.nusv.data.SignInSystem
@@ -67,8 +69,6 @@ class GameController(
     var showAchievementToast by mutableStateOf(false)
     var effectsEnabled by mutableStateOf(true)
     var aiHint by mutableStateOf<Position?>(null)
-    var hintUsed by mutableStateOf(false)
-    var timeBoostUsed by mutableIntStateOf(0)
     var themeIdAtStart by mutableStateOf("")
     private var activeThemeId: String = ""
 
@@ -244,8 +244,6 @@ class GameController(
         newlyUnlocked = emptyList()
         showAchievementToast = false
         aiHint = null
-        hintUsed = false
-        timeBoostUsed = 0
         themeIdAtStart = activeThemeId
         boardVersion++
         store.saveSavedGame(null)
@@ -284,8 +282,6 @@ class GameController(
         totalSeconds = 0
         boardVersion++
         aiHint = null
-        hintUsed = false
-        timeBoostUsed = 0
         pendingSavedGame = null
         restoreRequested = false
         startTimer()
@@ -342,12 +338,22 @@ class GameController(
         store.saveProfile(profile)
     }
 
-    // ---------- 道具 ----------
+    // ---------- 道具（库存制） ----------
+
+    fun powerupCount(type: PowerupType): Int = PowerupSystem.count(profile, type)
+
+    fun purchasePowerup(type: PowerupType, amount: Int): Boolean {
+        val updated = PowerupSystem.purchase(profile, type, amount) ?: return false
+        profile = updated
+        store.saveProfile(profile)
+        return true
+    }
 
     fun useHint() {
-        if (hintUsed || status.isOver || aiThinking) return
+        if (status.isOver || aiThinking) return
         if (isVsAi && currentStone != playerColor) return
-        hintUsed = true
+        if (powerupCount(PowerupType.HINT) <= 0) return
+        profile = PowerupSystem.consume(profile, PowerupType.HINT)
         aiThinking = true
         aiHint = null
         val (tp, r) = DailyTaskSystem.onEvent(profile, TaskType.USE_POWERUP)
@@ -365,9 +371,10 @@ class GameController(
     }
 
     fun useTimeBoost() {
-        if (timeBoostUsed >= 2 || status.isOver) return
+        if (status.isOver) return
         if (isVsAi && currentStone != playerColor) return
-        timeBoostUsed++
+        if (powerupCount(PowerupType.TIMEBOOST) <= 0) return
+        profile = PowerupSystem.consume(profile, PowerupType.TIMEBOOST)
         turnSecondsLeft += 30
         val (tp, r) = DailyTaskSystem.onEvent(profile, TaskType.USE_POWERUP)
         profile = tp.copy(score = tp.score + r)

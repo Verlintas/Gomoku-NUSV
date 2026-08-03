@@ -43,7 +43,8 @@ data class PlayerProfile(
     val purchasedDecorations: List<String> = emptyList(),
     val selectedEffectColor: String = "default",
     val selectedGlow: String = "none",
-    val selectedWinLine: String = "default"
+    val selectedWinLine: String = "default",
+    val powerups: Map<String, Int> = emptyMap()
 )
 
 @Serializable
@@ -70,23 +71,33 @@ class ProfileStore(private val settings: Settings) {
     private val json = Json { ignoreUnknownKeys = true }
 
     fun loadProfile(): PlayerProfile {
+        val profile = rawProfile()?.withInitialPowerups() ?: PlayerProfile().withInitialPowerups()
+        if (profile.powerups.isEmpty()) saveProfile(profile)
+        return profile
+    }
+
+    private fun rawProfile(): PlayerProfile? {
         val rawEnc = settings.getStringOrNull(KEY_PROFILE_ENC)
         if (rawEnc != null) {
             SaveCrypto.decrypt(rawEnc)?.let { raw ->
                 return try {
                     json.decodeFromString<PlayerProfile>(raw)
                 } catch (_: Exception) {
-                    PlayerProfile()
+                    null
                 }
             }
         }
-        val raw = settings.getStringOrNull(KEY_PROFILE) ?: return PlayerProfile()
+        val raw = settings.getStringOrNull(KEY_PROFILE) ?: return null
         return try {
             json.decodeFromString<PlayerProfile>(raw)
         } catch (_: Exception) {
-            PlayerProfile()
+            null
         }
     }
+
+    /** 迁移：无道具库存时赠送初始道具（每个用户一次） */
+    private fun PlayerProfile.withInitialPowerups(): PlayerProfile =
+        if (powerups.isEmpty()) copy(powerups = PowerupSystem.initialPowerups()) else this
 
     fun saveProfile(profile: PlayerProfile) {
         settings.putString(KEY_PROFILE_ENC, SaveCrypto.encrypt(json.encodeToString(profile)))

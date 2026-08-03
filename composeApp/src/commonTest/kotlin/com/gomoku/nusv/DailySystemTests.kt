@@ -111,3 +111,39 @@ class DailySystemTests {
         assertEquals(2, d2.signInStreak)
     }
 }
+
+class PowerupTests {
+    @Test
+    fun initialPowerupsGranted() {
+        val p = com.gomoku.nusv.data.PlayerProfile()
+        val with = p.copy(powerups = com.gomoku.nusv.data.PowerupSystem.initialPowerups())
+        assertEquals(3, with.powerups["hint"])
+        assertEquals(5, with.powerups["timeboost"])
+    }
+
+    @Test
+    fun consumeDecrements() {
+        var p = com.gomoku.nusv.data.PlayerProfile(powerups = mapOf("hint" to 2))
+        p = com.gomoku.nusv.data.PowerupSystem.consume(p, com.gomoku.nusv.data.PowerupType.HINT)
+        assertEquals(1, p.powerups["hint"])
+        p = com.gomoku.nusv.data.PowerupSystem.consume(p, com.gomoku.nusv.data.PowerupType.HINT)
+        assertEquals(0, p.powerups["hint"])
+        p = com.gomoku.nusv.data.PowerupSystem.consume(p, com.gomoku.nusv.data.PowerupType.HINT)
+        assertEquals(0, p.powerups["hint"])
+    }
+
+    @Test
+    fun purchaseDeductsPoints() {
+        val p = com.gomoku.nusv.data.PlayerProfile(score = 500)
+        val bought = com.gomoku.nusv.data.PowerupSystem.purchase(p, com.gomoku.nusv.data.PowerupType.HINT, 5)
+        assertEquals(500 - 500, bought?.score)
+        assertEquals(5, bought?.powerups?.get("hint"))
+    }
+
+    @Test
+    fun purchaseRejectedWhenPoor() {
+        val p = com.gomoku.nusv.data.PlayerProfile(score = 50)
+        val bought = com.gomoku.nusv.data.PowerupSystem.purchase(p, com.gomoku.nusv.data.PowerupType.HINT, 1)
+        assertEquals(null, bought)
+    }
+}

@@ -358,14 +358,16 @@ private fun ControlPanel(
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 ActionButton(
-                    I18n.t("powerup_hint") + if (controller.hintUsed) "✓" else "",
-                    enabled = !controller.hintUsed && !controller.aiThinking && controller.isPlayerTurn && !controller.status.isOver
+                    I18n.t("powerup_hint") + " ×${controller.powerupCount(com.gomoku.nusv.data.PowerupType.HINT)}",
+                    enabled = controller.powerupCount(com.gomoku.nusv.data.PowerupType.HINT) > 0 &&
+                        !controller.aiThinking && controller.isPlayerTurn && !controller.status.isOver
                 ) {
                     controller.useHint()
                 }
                 ActionButton(
-                    I18n.t("powerup_time") + " ${2 - controller.timeBoostUsed}",
-                    enabled = controller.timeBoostUsed < 2 && !controller.status.isOver && controller.isPlayerTurn
+                    I18n.t("powerup_time") + " ×${controller.powerupCount(com.gomoku.nusv.data.PowerupType.TIMEBOOST)}",
+                    enabled = controller.powerupCount(com.gomoku.nusv.data.PowerupType.TIMEBOOST) > 0 &&
+                        !controller.status.isOver && controller.isPlayerTurn
                 ) {
                     controller.useTimeBoost()
                 }

@@ -34,6 +34,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gomoku.nusv.data.Decoration
+import com.gomoku.nusv.data.PowerupSystem
+import com.gomoku.nusv.data.PowerupType
 import com.gomoku.nusv.data.DecorationRegistry
 import com.gomoku.nusv.data.DecorationType
 import com.gomoku.nusv.i18n.I18n
@@ -74,6 +76,7 @@ fun DecorationShopPage(controller: GameController, theme: BoardTheme, nav: NavCo
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
+                PowerupSection(controller, theme)
                 DecorationSection(
                     title = I18n.t("dec_section_effect"),
                     items = DecorationRegistry.all.filter { it.type == DecorationType.EFFECT_COLOR },
@@ -186,4 +189,53 @@ private fun decorationColor(id: String): Color = when (id) {
     "glow_blue" -> Color(0xFF64B5F6)
     "winline_neon" -> Color(0xFFFF4081)
     else -> Color(0xFFBDBDBD)
+}
+
+@Composable
+private fun PowerupSection(controller: GameController, theme: BoardTheme) {
+    Text(I18n.t("powerup_shop_title"), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = theme.textSecondary)
+    PowerupType.entries.forEach { type ->
+        val owned = controller.powerupCount(type)
+        Card(
+            colors = CardDefaults.cardColors(containerColor = theme.uiSurface),
+            shape = RoundedCornerShape(12.dp),
+            border = BorderStroke(1.dp, theme.uiSurfaceVariant)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        I18n.t(if (type == PowerupType.HINT) "powerup_hint" else "powerup_time") + "  ×${owned}",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = theme.textPrimary
+                    )
+                    Text(
+                        I18n.t(if (type == PowerupType.HINT) "powerup_hint_desc" else "powerup_time_desc"),
+                        fontSize = 12.sp,
+                        color = theme.textSecondary
+                    )
+                }
+                listOf(1, 5, 10).forEach { amount ->
+                    OutlinedButton(
+                        enabled = controller.profile.score >= type.price * amount,
+                        onClick = { controller.purchasePowerup(type, amount) }
+                    ) {
+                        Text("+$amount", fontSize = 13.sp)
+                        Spacer(Modifier.width(2.dp))
+                        Text(
+                            "${type.price * amount}",
+                            fontSize = 11.sp,
+                            color = theme.textSecondary
+                        )
+                    }
+                }
+            }
+        }
+    }
 }

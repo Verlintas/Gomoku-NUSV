@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -483,6 +484,41 @@ fun SettingsPage(
                         ) {
                             Text(I18n.t("import_save"), fontSize = 13.sp)
                         }
+                    }
+
+                    Text(
+                        I18n.t("import_paste_hint"),
+                        fontSize = 12.sp,
+                        color = theme.textSecondary
+                    )
+                    TextField(
+                        value = importText,
+                        onValueChange = { importText = it },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 110.dp),
+                        placeholder = {
+                            Text(
+                                I18n.t("import_paste_placeholder"),
+                                fontSize = 12.sp,
+                                color = theme.textSecondary
+                            )
+                        },
+                        textStyle = androidx.compose.ui.text.TextStyle(fontSize = 12.sp)
+                    )
+                    Button(
+                        onClick = {
+                            message = if (controller.importSave(importText)) {
+                                importText = ""
+                                I18n.t("import_done")
+                            } else {
+                                I18n.t("import_failed")
+                            }
+                        },
+                        enabled = importText.isNotBlank(),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(I18n.t("import_paste_confirm"), fontSize = 13.sp)
                     }
                     message?.let {
                         Text(it, fontSize = 12.sp, color = theme.accent)

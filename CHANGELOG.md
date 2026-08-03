@@ -5,6 +5,20 @@ All notable changes to Gomoku-NUSV are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.3] - 2026-08-01
+
+### Added
+
+- **Import via text box** — the Settings page now has a paste field for save
+  data; import works by pasting the exported JSON into the field (clipboard
+  import remains available as a shortcut).
+- **Purchasable power-ups** — hints and time boosts are now stock-based:
+  - New players start with 3 hints and 5 time boosts (migration included).
+  - Each use consumes one from the stock; the in-game buttons show remaining
+    stock and disable when empty.
+  - The shop sells hints (100 pts each) and time boosts (80 pts each) in packs
+    of 1 / 5 / 10, giving points a direct gameplay use.
+
 ## [1.4.2] - 2026-08-01
 
 ### Fixed
