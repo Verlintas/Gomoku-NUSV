@@ -168,6 +168,12 @@ class ProfileStore(private val settings: Settings) {
         settings.putString(KEY_LANGUAGE, code)
     }
 
+    fun loadEffectsEnabled(): Boolean = settings.getBoolean(KEY_EFFECTS, true)
+
+    fun saveEffectsEnabled(enabled: Boolean) {
+        settings.putBoolean(KEY_EFFECTS, enabled)
+    }
+
     fun loadConfig(): GameConfig {
         val mode = settings.getStringOrNull(KEY_MODE)?.let { name ->
             GameMode.entries.find { it.name == name }
@@ -220,5 +226,6 @@ class ProfileStore(private val settings: Settings) {
         private const val KEY_SECONDS = "seconds_per_move"
         private const val KEY_SAVED_GAME = "saved_game"
         private const val KEY_LANGUAGE = "language"
+        private const val KEY_EFFECTS = "effects_enabled"
     }
 }

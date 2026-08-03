@@ -182,7 +182,7 @@ private fun BoardLayout.center(row: Int, col: Int): Offset =
 
 /**
  * 科幻特效层，叠加在棋盘上方。
- * 仅渲染已购买且启用的特效（enabledEffects）。
+ * enabled=false 时全部特效关闭（总开关）。
  */
 @Composable
 fun EffectsOverlay(
@@ -204,10 +204,10 @@ fun EffectsOverlay(
         else listOf(theme.accent, Color.White, Color(0xFF7FE7FF))
 
     var tick by remember { mutableLongStateOf(0L) }
-    LaunchedEffect(Unit) {
+    LaunchedEffect(enabled) {
         while (true) {
             withFrameNanos { nanos ->
-                engine.update(nanos / 1_000_000_000f)
+                if (enabled) engine.update(nanos / 1_000_000_000f)
                 tick++
             }
         }

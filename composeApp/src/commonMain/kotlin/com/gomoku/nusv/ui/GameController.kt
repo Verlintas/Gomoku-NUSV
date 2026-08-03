@@ -32,7 +32,6 @@ import com.gomoku.nusv.model.Stone
 import com.gomoku.nusv.i18n.I18n
 import com.gomoku.nusv.sound.SoundPlayer
 import com.gomoku.nusv.sound.SoundType
-import com.gomoku.nusv.ui.effects.BoardEffect
 import com.gomoku.nusv.ui.effects.EffectRegistry
 import com.gomoku.nusv.ui.theme.BoardTheme
 import kotlinx.coroutines.CoroutineScope
@@ -67,7 +66,7 @@ class GameController(
     var winningLine by mutableStateOf<List<Pair<Int, Int>>?>(null)
     var newlyUnlocked by mutableStateOf<List<Achievement>>(emptyList())
     var showAchievementToast by mutableStateOf(false)
-    var effectsEnabled by mutableStateOf(true)
+    var effectsEnabled by mutableStateOf(store.loadEffectsEnabled())
     var aiHint by mutableStateOf<Position?>(null)
     var themeIdAtStart by mutableStateOf("")
     private var activeThemeId: String = ""
@@ -155,14 +154,11 @@ class GameController(
         }
         val points = ScoreRules.gamePoints(playerWon, isDraw, profile.winStreak)
         profile = profile.copy(score = profile.score + points)
-        val (taskProfile, taskReward) = DailyTaskSystem.onEvent(profile, TaskType.PLAY_GAME)
-        profile = taskProfile.copy(score = taskProfile.score + taskReward)
+        profile = DailyTaskSystem.onEvent(profile, TaskType.PLAY_GAME).first
         if (playerWon) {
-            val (tp2, r2) = DailyTaskSystem.onEvent(profile, TaskType.WIN_GAME)
-            profile = tp2.copy(score = tp2.score + r2)
+            profile = DailyTaskSystem.onEvent(profile, TaskType.WIN_GAME).first
             if (isVsAi) {
-                val (tp3, r3) = DailyTaskSystem.onEvent(profile, TaskType.WIN_VS_AI)
-                profile = tp3.copy(score = tp3.score + r3)
+                profile = DailyTaskSystem.onEvent(profile, TaskType.WIN_VS_AI).first
             }
         }
         val unlocked = Achievements.newlyUnlocked(profile, playerWon && isVsAi, difficulty)
@@ -326,18 +322,6 @@ class GameController(
         restart()
     }
 
-    // ---------- 特效自定义开关 ----------
-
-    fun isEffectEnabled(effect: BoardEffect): Boolean = effect.id in profile.enabledEffects
-
-    fun setEffectEnabled(effect: BoardEffect, enabled: Boolean) {
-        val current = profile.enabledEffects.toMutableList()
-        if (enabled && effect.id !in current) current.add(effect.id)
-        if (!enabled) current.remove(effect.id)
-        profile = profile.copy(enabledEffects = current)
-        store.saveProfile(profile)
-    }
-
     // ---------- 道具（库存制） ----------
 
     fun powerupCount(type: PowerupType): Int = PowerupSystem.count(profile, type)
@@ -354,10 +338,10 @@ class GameController(
         if (isVsAi && currentStone != playerColor) return
         if (powerupCount(PowerupType.HINT) <= 0) return
         profile = PowerupSystem.consume(profile, PowerupType.HINT)
+        profile = DailyTaskSystem.onEvent(profile, TaskType.USE_POWERUP).first
+        store.saveProfile(profile)
         aiThinking = true
         aiHint = null
-        val (tp, r) = DailyTaskSystem.onEvent(profile, TaskType.USE_POWERUP)
-        profile = tp.copy(score = tp.score + r)
         aiJob?.cancel()
         aiJob = scope.launch {
             val hint = withContext(Dispatchers.Default) {
@@ -375,9 +359,9 @@ class GameController(
         if (isVsAi && currentStone != playerColor) return
         if (powerupCount(PowerupType.TIMEBOOST) <= 0) return
         profile = PowerupSystem.consume(profile, PowerupType.TIMEBOOST)
+        profile = DailyTaskSystem.onEvent(profile, TaskType.USE_POWERUP).first
+        store.saveProfile(profile)
         turnSecondsLeft += 30
-        val (tp, r) = DailyTaskSystem.onEvent(profile, TaskType.USE_POWERUP)
-        profile = tp.copy(score = tp.score + r)
     }
 
     // ---------- 主题记录 / 小游戏 ----------
@@ -434,6 +418,7 @@ class GameController(
 
     fun setEffectsEnabledFlag(enabled: Boolean) {
         effectsEnabled = enabled
+        store.saveEffectsEnabled(enabled)
     }
 
     // ---------- 语言 ----------

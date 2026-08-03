@@ -60,8 +60,8 @@ android {
         applicationId = "com.gomoku.nusv"
         minSdk = 26
         targetSdk = 36
-        versionCode = 11
-        versionName = "1.4.4"
+        versionCode = 12
+        versionName = "1.4.5"
     }
     packaging {
         resources {
@@ -86,7 +86,7 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Deb)
             packageName = "Gomoku-NUSV"
-            packageVersion = "1.4.4"
+            packageVersion = "1.4.5"
             description = "五子棋对弈应用 Gomoku-NUSV"
             vendor = "Gomoku"
         }

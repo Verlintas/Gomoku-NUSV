@@ -16,6 +16,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 >
 > 历史已知问题：v1.3.0 曾存在存档加密往返缺陷（v1.3.1 已修复）。
 
+## [1.4.5] - 2026-08-01
+
+### Changed
+
+- The shop is renamed to **积分商店 / Shop** (it sells both decorations and
+  power-ups, so "Decoration Shop" no longer fit).
+
+### Fixed
+
+- **Daily-task rewards were awarded twice** — `onEvent` already adds the reward
+  to the score, and callers added it again, doubling every task reward. Fixed in
+  game end and both power-up paths.
+- **Power-up stock was not persisted** — consuming a hint/time boost updated the
+  in-memory stock but never saved it; a restart restored the old stock. Both
+  power-up uses now save immediately.
+- **Effects master switch was not persisted** — the toggle now survives restarts.
+- The shop no longer shows a decoration as "in use" when the imported save
+  references an unowned item.
+- Removed dead per-effect toggle code.
+
+### 升级须知（重要）
+
+- **本次更新会重置存档**：升级到 1.4.5 后本地存档清空（新玩家状态）。
+- 想保留进度：更新前 设置 → 存档备份 → 导出存档；更新后导入恢复。
+
 ## [1.4.4] - 2026-08-01
 
 ### Changed

@@ -43,9 +43,9 @@ dependencies.
 - **Daily sign-in** — sign in daily for a growing streak bonus.
 - **Daily tasks** — three random tasks per day (play, win, win vs AI, use a
   power-up) with point rewards.
-- **Decoration shop** — cosmetic upgrades purchasable with points: golden or
-  amethyst effect colors, golden or azure stone glow, and a dual-neon win line
-  (no gameplay impact).
+- **Shop** — spend points on cosmetic upgrades (golden or amethyst effect
+  colors, golden or azure stone glow, a dual-neon win line) and on power-up
+  packs (hints 100 pts, time boosts 80 pts, packs of 1 / 5 / 10).
 - **Titles** — eight rank titles earned from your stats, displayed on the Home page.
 - **Minigame** — a Tic-Tac-Toe mode (vs AI or two-player) with its own win counter.
 - **Multi-page UI** — Home, Game, Minigame, Achievements, Stats, Titles, and

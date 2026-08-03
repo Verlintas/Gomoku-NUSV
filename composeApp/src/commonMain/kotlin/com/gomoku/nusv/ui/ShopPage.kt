@@ -43,7 +43,7 @@ import com.gomoku.nusv.ui.nav.NavController
 import com.gomoku.nusv.ui.theme.BoardTheme
 
 @Composable
-fun DecorationShopPage(controller: GameController, theme: BoardTheme, nav: NavController) {
+fun ShopPage(controller: GameController, theme: BoardTheme, nav: NavController) {
     Surface(color = theme.uiBackground, modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -119,7 +119,8 @@ private fun DecorationSection(
     Text(title, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = theme.textSecondary)
     items.forEach { d ->
         val owned = DecorationRegistry.isOwned(controller.profile, d.id)
-        val selected = d.id == selectedId
+        // 防止导入的脏存档选中了未购买的装饰：仅已拥有的才视为"使用中"
+        val selected = owned && d.id == selectedId
         Card(
             colors = CardDefaults.cardColors(
                 containerColor = if (selected) theme.uiSurfaceVariant else theme.uiSurface

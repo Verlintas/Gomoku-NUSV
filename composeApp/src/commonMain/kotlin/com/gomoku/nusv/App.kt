@@ -30,7 +30,7 @@ import com.gomoku.nusv.ui.TicTacToePage
 import com.gomoku.nusv.ui.AchievementsPage
 import com.gomoku.nusv.ui.StatsPage
 import com.gomoku.nusv.ui.TitlesPage
-import com.gomoku.nusv.ui.DecorationShopPage
+import com.gomoku.nusv.ui.ShopPage
 import com.gomoku.nusv.ui.SettingsPage
 import com.gomoku.nusv.ui.nav.NavController
 import com.gomoku.nusv.ui.nav.Page
@@ -108,7 +108,7 @@ fun App() {
                         Page.TICTACTOE -> TicTacToePage(controller, activeTheme, nav)
                         Page.ACHIEVEMENTS -> AchievementsPage(controller, activeTheme, nav)
                         Page.STATS -> StatsPage(controller, activeTheme, nav)
-                        Page.STORE -> DecorationShopPage(controller, activeTheme, nav)
+                        Page.STORE -> ShopPage(controller, activeTheme, nav)
                         Page.TITLES -> TitlesPage(controller, activeTheme, nav)
                         Page.SETTINGS -> SettingsPage(controller, activeTheme, nav, onThemeChange)
                     }
