@@ -1,8 +1,8 @@
 # Gomoku-NUSV
 
-A cross-platform Gomoku (Five in a Row) game for **macOS and Android**, built with
-[Kotlin Multiplatform](https://kotlinlang.org/docs/multiplatform.html) and
-[Compose Multiplatform](https://www.jetbrains.com/compose-multiplatform/).
+A cross-platform Gomoku (Five in a Row) game for **macOS, Windows and Android**,
+built with [Kotlin Multiplatform](https://kotlinlang.org/docs/multiplatform.html)
+and [Compose Multiplatform](https://www.jetbrains.com/compose-multiplatform/).
 
 Play against a local friend on the same screen, or challenge the built-in AI across
 three difficulty levels. The AI is a self-contained on-device engine with no network
@@ -74,10 +74,12 @@ without any server or network access.
 | Platform | Min version | Notes |
 |---|---|---|
 | macOS | 11 (Big Sur)+ | Distributed as a `.dmg` |
+| Windows | 10 (64-bit)+ | Distributed as an `.msi` (built on Windows) |
 | Android | API 26 (Android 8.0)+ | Distributed as an `.apk` |
 
-Android is built with the classic Android application plugin; the desktop target runs
-on the JVM, so no Xcode is required to build the macOS version.
+All targets share one codebase. The desktop targets (macOS and Windows) run on the
+JVM, so no Xcode is required; Windows installers are produced with `jpackage` and
+must be built on a Windows machine.
 
 ### Opening the macOS app
 
@@ -118,17 +120,35 @@ After that the app opens normally. The ad-hoc signature is verified with
 
 # Build the macOS .dmg installer
 ./gradlew :composeApp:packageDmg
+
+# Build the Windows .msi installer (run on Windows)
+./gradlew :composeApp:packageMsi
 ```
+
+### Windows installer via GitHub Actions
+
+A Windows machine is required to produce the `.msi` (jpackage cannot cross-build
+Windows installers from macOS). This repository ships a ready-made builder:
+
+- Workflow: `.github/workflows/windows-build.yml` (Windows Installer Builder)
+- Trigger it from the **Actions** tab (Run workflow) — or push a `v*` tag, and
+  the produced `.msi` is attached to that tag's GitHub Release automatically.
+- The workflow installs JDK 17, the Android SDK (required at configuration
+  time), builds the MSI and uploads it as a build artifact / release asset.
+- Note: the Windows build is unsigned, so SmartScreen may warn on first run
+  (More info → Run anyway).
 
 Artifacts are produced under:
 
 - `composeApp/build/outputs/apk/debug/` — Android APK
 - `composeApp/build/compose/binaries/main/dmg/` — macOS disk image
+- `composeApp/build/compose/binaries/main/msi/` — Windows installer (built on Windows)
 - `composeApp/build/compose/binaries/main/app/` — unpackaged macOS `.app`
 
 The macOS icon is injected into the `.app` bundle by a dedicated Gradle task
 (`applyAppIcon`) which also registers the `CFBundleIconFile` key in `Info.plist`.
-`packageApp` and `packageDmg` depend on it automatically.
+`packageApp` and `packageDmg` depend on it automatically. The Windows `.msi` uses
+the default Compose icon (custom `.ico` requires building on Windows).
 
 ## Project Structure
 

@@ -16,6 +16,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 >
 > 历史已知问题：v1.3.0 曾存在存档加密往返缺陷（v1.3.1 已修复）。
 
+## [1.4.6-compatibility] - 2026-08-01
+
+### Added
+
+- **Windows support (compatibility edition)** — the desktop target now builds a
+  Windows `.msi` installer (`./gradlew :composeApp:packageMsi`, built on Windows)
+  alongside macOS and Android. All game logic, AI, saves and UI are shared; the
+  desktop code uses only cross-platform JVM APIs (audio via javax.sound, dates via
+  java.time), so the Windows build needs no code changes.
+- Desktop window opens with an OS-aware startup log; layout adapts from 700 px
+  wide up to large screens (responsive columns, wrapping chip groups, compact
+  headers) for consistent experience across macOS / Windows / Android at any DPI.
+
+### 升级须知（重要）
+
+- **本次更新会重置存档**：升级到 1.4.6-compatibility 后本地存档清空（新玩家状态）。
+- 想保留进度：更新前 设置 → 存档备份 → 导出存档；更新后导入恢复。
+- Windows 安装包需在 Windows 机器上构建（macOS 无法交叉打包 .msi）。
+
 ## [1.4.6] - 2026-08-01
 
 ### Fixed
