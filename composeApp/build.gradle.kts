@@ -92,6 +92,16 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+    flavorDimensions += "device"
+    productFlavors {
+        create("phone") {
+            dimension = "device"
+        }
+        create("automotive") {
+            dimension = "device"
+            applicationIdSuffix = ".automotive"
+        }
+    }
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false

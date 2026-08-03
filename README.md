@@ -79,6 +79,7 @@ without any server or network access.
 | Linux | Ubuntu 20.04+ (x64) | Distributed as a `.deb` (built on Linux) |
 | iOS | 14+ | Built with Xcode (`iosApp`) |
 | Android | API 26 (Android 8.0)+ | Distributed as an `.apk` |
+| Android Automotive | API 26+, landscape-locked | `Gomoku-NUSV-automotive.apk` (sideload / car-store) |
 
 All targets share one codebase. The desktop targets (macOS and Windows) run on the
 JVM, so no Xcode is required; Windows installers are produced with `jpackage` and
@@ -147,6 +148,9 @@ After that the app opens normally. The ad-hoc signature is verified with
 
 # Build the Windows .msi installer (run on Windows)
 ./gradlew :composeApp:packageMsi
+
+# Build the Android Automotive variant (landscape-locked)
+./gradlew :composeApp:assembleAutomotiveDebug
 
 # Build the iOS app (macOS with Xcode)
 xcodebuild -project iosApp/iosApp.xcodeproj -target iosApp \

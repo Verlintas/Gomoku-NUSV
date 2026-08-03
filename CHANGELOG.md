@@ -29,6 +29,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Android Automotive (车机) variant** — a dedicated `automotive` product flavor:
+  landscape-locked, declares `android.hardware.type.automotive`, separate
+  package (`com.gomoku.nusv.automotive`). Installable on Android Automotive OS
+  and most domestic car head units via sideload/car app stores. Suited for
+  parked use / front-seat passenger and rear-seat entertainment.
 - **iOS support** — the app now builds for iPhone/iPad (arm64 device and arm64
   simulator; Xcode project in `iosApp/`). All game logic, AI, saves and UI are
   shared; iOS-specific code covers dates (NSDate), settings (NSUserDefaults via
