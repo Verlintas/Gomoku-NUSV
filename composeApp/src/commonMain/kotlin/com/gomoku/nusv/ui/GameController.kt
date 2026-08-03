@@ -71,8 +71,6 @@ class GameController(
     var timeBoostUsed by mutableIntStateOf(0)
     var themeIdAtStart by mutableStateOf("")
     private var activeThemeId: String = ""
-    var showAchievementsDialog by mutableStateOf(false)
-    var showStatsDialog by mutableStateOf(false)
 
     var playerColor: Stone = Stone.BLACK
 

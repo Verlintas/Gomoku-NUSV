@@ -84,7 +84,7 @@ fun GamePage(
                     Row(Modifier.fillMaxSize().padding(16.dp)) {
                         BoardArea(controller, theme, Modifier.weight(1f))
                         Spacer(Modifier.width(16.dp))
-                        ControlPanel(controller, theme, onThemeChange, Modifier.width(300.dp))
+                        ControlPanel(controller, theme, onThemeChange, nav = nav, modifier = Modifier.width(300.dp))
                     }
                 } else {
                     Column(Modifier.fillMaxSize().padding(12.dp)) {
@@ -100,7 +100,8 @@ fun GamePage(
                             controller,
                             theme,
                             onThemeChange,
-                            Modifier
+                            nav = nav,
+                            modifier = Modifier
                                 .fillMaxWidth()
                                 .heightIn(max = panelMaxHeight)
                         )
@@ -293,7 +294,7 @@ private fun AchievementToast(controller: GameController, theme: BoardTheme) {
 @Composable
 private fun PerformanceWarning(controller: GameController, theme: BoardTheme) {
     LaunchedEffect(Unit) {
-        kotlinx.coroutines.delay(4_000)
+        kotlinx.coroutines.delay(2_500)
         controller.aiTimedOut = false
     }
     Card(
@@ -325,6 +326,7 @@ private fun ControlPanel(
     controller: GameController,
     theme: BoardTheme,
     onThemeChange: (BoardTheme) -> Unit,
+    nav: com.gomoku.nusv.ui.nav.NavController? = null,
     modifier: Modifier = Modifier
 ) {
     val config = controller.config
@@ -459,13 +461,13 @@ private fun ControlPanel(
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(
-                    onClick = { controller.showAchievementsDialog = true },
+                    onClick = { nav?.navigate(com.gomoku.nusv.ui.nav.Page.ACHIEVEMENTS) },
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(I18n.t("achievements"), fontSize = 13.sp)
                 }
                 Button(
-                    onClick = { controller.showStatsDialog = true },
+                    onClick = { nav?.navigate(com.gomoku.nusv.ui.nav.Page.STATS) },
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(I18n.t("stats"), fontSize = 13.sp)
@@ -623,7 +625,12 @@ private fun ResultDialog(controller: GameController, theme: BoardTheme) {
                     )
                 } else {
                     Text(
-                        if (isDraw) I18n.t("draw_both") else I18n.t("congrats", "winner" to stoneName(controller.currentStone.opponent)),
+                        if (isDraw) {
+                            I18n.t("draw_both")
+                        } else {
+                            val winnerStone = if (status == GameStatus.BLACK_WIN) Stone.BLACK else Stone.WHITE
+                            I18n.t("congrats", "winner" to stoneName(winnerStone))
+                        },
                         color = theme.textPrimary,
                         fontSize = 14.sp,
                         modifier = Modifier.fillMaxWidth(),
@@ -690,66 +697,6 @@ private fun RestoreDialog(controller: GameController, theme: BoardTheme) {
         },
         dismissButton = {
             TextButton(onClick = controller::discardSavedGame) { Text(I18n.t("resume_discard")) }
-        }
-    )
-}
-
-@Composable
-private fun StatsDialog(controller: GameController, theme: BoardTheme) {
-    if (!controller.showStatsDialog) return
-    val p = controller.profile
-    val played = p.gamesPlayed.coerceAtLeast(1)
-    val winRate = p.wins * 100 / played
-    AlertDialog(
-        onDismissRequest = { controller.showStatsDialog = false },
-        containerColor = theme.uiSurface,
-        title = { Text(I18n.t("stats_title"), color = theme.textPrimary, fontWeight = FontWeight.Bold) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                InfoRow(I18n.t("total_games"), "${p.gamesPlayed}", theme)
-                InfoRow(I18n.t("victory"), "${p.wins}", theme)
-                InfoRow(I18n.t("defeat"), "${p.losses}", theme)
-                InfoRow(I18n.t("draws"), "${p.draws}", theme)
-                InfoRow(I18n.t("win_rate"), "${winRate}%", theme)
-                InfoRow(I18n.t("current_streak"), "${p.winStreak}", theme)
-                InfoRow(I18n.t("best_streak"), "${p.bestWinStreak}", theme)
-                HorizontalDivider(color = theme.uiSurfaceVariant)
-                Text(I18n.t("difficulty_wins"), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = theme.textSecondary)
-                Difficulty.entries.forEach { d ->
-                    val wins = p.winsByDifficulty[d.name] ?: 0
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            difficultyName(d),
-                            fontSize = 13.sp,
-                            color = theme.textPrimary,
-                            modifier = Modifier.width(64.dp)
-                        )
-                        Box(
-                            Modifier
-                                .weight(1f)
-                                .height(10.dp)
-                                .clip(RoundedCornerShape(5.dp))
-                                .background(theme.uiSurfaceVariant)
-                        ) {
-                            if (wins > 0) {
-                                Box(
-                                    Modifier
-                                        .fillMaxWidth(wins / 100f)
-                                        .height(10.dp)
-                                        .clip(RoundedCornerShape(5.dp))
-                                        .background(theme.accent)
-                                )
-                            }
-                        }
-                        Spacer(Modifier.width(8.dp))
-                        Text("$wins", fontSize = 13.sp, color = theme.textSecondary)
-                    }
-                }
-            }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = { controller.showStatsDialog = false }) { Text(I18n.t("close")) }
         }
     )
 }

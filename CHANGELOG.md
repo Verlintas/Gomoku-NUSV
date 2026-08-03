@@ -5,6 +5,22 @@ All notable changes to Gomoku-NUSV are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.2] - 2026-08-01
+
+### Fixed
+
+- Result dialog congratulated the wrong side in two-player mode (it always showed
+  the opponent of the last mover). It now names the actual winner.
+- The low-performance notice auto-dismissed too slowly (4 s); reduced to 2.5 s.
+- The Achievements and Stats buttons in the in-game settings panel did nothing
+  (leftover dialog wiring). They now navigate to the dedicated pages.
+- Removed the obsolete in-game stats dialog and its unused controller state.
+
+### Changed
+
+- In-app version now reads from a single constant (`APP_VERSION`), shown as
+  Gomoku-NUSV 1.4.2 in Settings.
+
 ## [1.4.1] - 2026-08-01
 
 ### Changed

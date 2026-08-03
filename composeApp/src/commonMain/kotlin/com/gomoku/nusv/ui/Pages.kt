@@ -492,7 +492,7 @@ fun SettingsPage(
 
                     Text(I18n.t("settings_about"), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = theme.textSecondary)
                     Text(
-                        "Gomoku-NUSV 1.3.0",
+                        "Gomoku-NUSV ${com.gomoku.nusv.APP_VERSION}",
                         fontSize = 12.sp,
                         color = theme.textSecondary
                     )
