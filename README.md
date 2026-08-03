@@ -1,7 +1,8 @@
 # Gomoku-NUSV
 
-A cross-platform Gomoku (Five in a Row) game for **macOS, Windows and Android**,
-built with [Kotlin Multiplatform](https://kotlinlang.org/docs/multiplatform.html)
+A cross-platform Gomoku (Five in a Row) game for **macOS, Windows, iOS and
+Android**, built with
+[Kotlin Multiplatform](https://kotlinlang.org/docs/multiplatform.html)
 and [Compose Multiplatform](https://www.jetbrains.com/compose-multiplatform/).
 
 Play against a local friend on the same screen, or challenge the built-in AI across
@@ -75,11 +76,32 @@ without any server or network access.
 |---|---|---|
 | macOS | 11 (Big Sur)+ | Distributed as a `.dmg` |
 | Windows | 10 (64-bit)+ | Distributed as an `.msi` (built on Windows) |
+| iOS | 14+ | Built with Xcode (`iosApp`) |
 | Android | API 26 (Android 8.0)+ | Distributed as an `.apk` |
 
 All targets share one codebase. The desktop targets (macOS and Windows) run on the
 JVM, so no Xcode is required; Windows installers are produced with `jpackage` and
 must be built on a Windows machine.
+
+### Installing on your iPhone
+
+iOS apps are normally distributed only through the App Store, but you can install
+this app on your own iPhone with a **free Apple ID**:
+
+1. Open `iosApp/iosApp.xcodeproj` in Xcode.
+2. Select the `iosApp` target → **Signing & Capabilities** → enable
+   *Automatically manage signing* → choose your Apple ID as the Team (add it in
+   Xcode → Settings → Accounts first; use the free *Personal Team*).
+3. Connect your iPhone, trust the computer on the device, pick the iPhone as the
+   run destination and press Cmd+R.
+4. On first launch the device asks to trust the developer certificate.
+
+Free personal signing expires after 7 days — reconnect and re-run from Xcode to
+renew. (TestFlight / App Store distribution requires a paid Apple Developer
+account.)
+
+> Note: the iOS build targets arm64 devices and the arm64 simulator; the Intel
+> (x86_64) simulator is not supported by the current Compose toolchain.
 
 ### Opening the macOS app
 
@@ -123,6 +145,10 @@ After that the app opens normally. The ad-hoc signature is verified with
 
 # Build the Windows .msi installer (run on Windows)
 ./gradlew :composeApp:packageMsi
+
+# Build the iOS app (macOS with Xcode)
+xcodebuild -project iosApp/iosApp.xcodeproj -target iosApp \
+  -sdk iphonesimulator -configuration Debug ARCHS=arm64 ONLY_ACTIVE_ARCH=YES build
 ```
 
 ### Windows installer via GitHub Actions

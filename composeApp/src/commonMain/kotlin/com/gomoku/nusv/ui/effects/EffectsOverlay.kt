@@ -57,7 +57,7 @@ private class ParticleEngine {
 
     val particles = mutableListOf<Particle>()
     val rings = mutableListOf<Ring>()
-    private val rng = Random(System.nanoTime())
+    private val rng = Random.Default
 
     fun burst(x: Float, y: Float, colors: List<Color>, count: Int, speed: Float) {
         repeat(count) {

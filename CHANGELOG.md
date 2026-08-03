@@ -20,6 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **iOS support** — the app now builds for iPhone/iPad (arm64 device and arm64
+  simulator; Xcode project in `iosApp/`). All game logic, AI, saves and UI are
+  shared; iOS-specific code covers dates (NSDate), settings (NSUserDefaults via
+  multiplatform-settings) and the ComposeUIViewController entry point. Sound is
+  currently muted on iOS (AudioToolbox integration planned).
 - **Windows support (compatibility edition)** — the desktop target now builds a
   Windows `.msi` installer (`./gradlew :composeApp:packageMsi`, built on Windows)
   alongside macOS and Android. All game logic, AI, saves and UI are shared; the

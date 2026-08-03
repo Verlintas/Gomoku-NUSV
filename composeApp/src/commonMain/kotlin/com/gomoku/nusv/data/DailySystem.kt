@@ -53,7 +53,9 @@ object SignInSystem {
             }
             d = daysInMonth(y, m)
         }
-        return "%04d-%02d-%02d".format(y, m, d)
+        val mm = if (m < 10) "0$m" else "$m"
+        val dd = if (d < 10) "0$d" else "$d"
+        return "$y-$mm-$dd"
     }
 
     private fun daysInMonth(y: Int, m: Int): Int = when (m) {
@@ -102,7 +104,7 @@ object DailyTaskSystem {
     /** 若今天还没任务则生成 3 个随机任务（幂等） */
     fun rollTasks(profile: PlayerProfile, today: String = todayStr()): PlayerProfile {
         if (isTaskActive(profile, today)) return profile
-        val indices = tasksPool.indices.shuffled(Random(System.nanoTime())).take(3).sorted()
+        val indices = tasksPool.indices.shuffled(Random.Default).take(3).sorted()
         return profile.copy(
             taskDate = today,
             taskIds = indices.map { "$it:${tasksPool[it].type.key}" },

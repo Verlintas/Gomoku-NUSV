@@ -294,8 +294,8 @@ object GomokuAI {
     // ---------- 搜索 ----------
 
     private class Deadline(val limitNanos: Long) {
-        private val start = System.nanoTime()
-        fun over(): Boolean = System.nanoTime() > start + limitNanos
+        private val start = kotlin.time.TimeSource.Monotonic.markNow()
+        fun over(): Boolean = start.elapsedNow().inWholeNanoseconds > limitNanos
     }
 
     private fun searchMove(

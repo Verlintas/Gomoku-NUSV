@@ -57,5 +57,5 @@ class Board(val size: Int) {
         other.cells.copyInto(cells)
     }
 
-    fun snapshot(): IntArray = cells.clone()
+    fun snapshot(): IntArray = cells.copyOf()
 }

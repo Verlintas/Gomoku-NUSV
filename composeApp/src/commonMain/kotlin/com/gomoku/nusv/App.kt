@@ -36,11 +36,11 @@ import com.gomoku.nusv.ui.nav.NavController
 import com.gomoku.nusv.ui.nav.Page
 import com.gomoku.nusv.ui.theme.BoardTheme
 import com.gomoku.nusv.ui.theme.ThemeRegistry
-import com.russhwolf.settings.Settings
+import com.gomoku.nusv.data.createSettings
 
 @Composable
 fun App() {
-    val store = remember { ProfileStore(Settings()) }
+    val store = remember { ProfileStore(createSettings()) }
     val sound = remember { SoundPlayer() }
     val controller = remember { GameController(store, sound) }
     val nav = remember { NavController() }
