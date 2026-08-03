@@ -11,12 +11,13 @@ dependencies.
 ## Features
 
 - **Two game modes** — local two-player on one screen, or player vs. AI.
-- **Three AI difficulty levels** — Easy (heuristic with randomness), Medium (3-ply
-  search), Hard (6-ply search with iterative deepening).
+- **Three AI difficulty levels** — Easy (heuristic with threat responses),
+  Medium (threat-space search, 4 plies), Hard (threat-space search, up to 8 plies
+  on desktop).
 - **Platform-aware AI budget** — the search depth and per-move time limit adapt to
-  the device. Desktop uses up to 6-ply with a 5-second budget; Android uses up to
-  4-ply with a 3-second budget. If the budget is exceeded, the search is gracefully
-  truncated and a notice is shown.
+  the device. Desktop uses up to 8 plies with a 5-second budget; Android uses up to
+  6 plies with a 3-second budget. If the budget is exceeded, the search is
+  gracefully truncated and a notice is shown.
 - **Move timer** — optional per-move countdown (10–300 seconds). Running out of time
   forfeits the game.
 - **Undo / Resign / Restart** — undo removes both sides' last moves in AI mode.
@@ -34,8 +35,17 @@ dependencies.
 - **Sci-fi effects** — all four visual effects are permanently enabled: energy
   ripples on moves, particle bursts, a hologram scan beam, and a neon winning-line
   trail.
-- **Power-ups** — a once-per-game AI hint (recommended move highlighted on the
-  board) and twice-per-game +30 s time boosts.
+- **Power-ups (stock-based)** — an AI hint (recommended move highlighted on the
+  board) and +30 s time boosts are consumed from your stock; new players start with
+  3 hints and 5 boosts, and more can be purchased with points (1 / 5 / 10 packs).
+- **Points economy** — every game awards points (win +100 with streak bonus,
+  draw +30, loss +10) spent in the decoration shop and on power-ups.
+- **Daily sign-in** — sign in daily for a growing streak bonus.
+- **Daily tasks** — three random tasks per day (play, win, win vs AI, use a
+  power-up) with point rewards.
+- **Decoration shop** — cosmetic upgrades purchasable with points: golden or
+  amethyst effect colors, golden or azure stone glow, and a dual-neon win line
+  (no gameplay impact).
 - **Titles** — eight rank titles earned from your stats, displayed on the Home page.
 - **Minigame** — a Tic-Tac-Toe mode (vs AI or two-player) with its own win counter.
 - **Multi-page UI** — Home, Game, Minigame, Achievements, Stats, Titles, and
@@ -48,13 +58,16 @@ dependencies.
 The AI is implemented in pure Kotlin in `commonMain` and runs on both platforms
 without any server or network access.
 
-- Position evaluation: four-direction line scoring covering open/broken twos, threes,
-  and fours, plus threat aggregation (double-three / four-three patterns).
-- Search: minimax with alpha-beta pruning and iterative deepening. Move ordering uses
-  a full-board evaluation, so winning moves are always expanded first.
-- Candidate generation: only empty cells within a radius of the existing stones are
-  considered, keeping the branching factor small on low-end devices.
-- Deterministic ordering of candidates avoids randomness between identical states.
+- **Threat-space search** — forced moves are detected and expanded first: an
+  immediate win, blocking an opponent's immediate win, creating an open four, and
+  intelligently blocking an opponent's open four (picking the point that leaves the
+  fewest remaining threats).
+- **Threat pruning** — when a forced move exists, only it is searched, so the same
+  time budget reaches far deeper lines (VCF-style continuation past the depth limit).
+- **Incremental evaluation** — only the lines affected by a move are re-scored,
+  keeping search fast on low-end phones.
+- **Refined line scoring** — open vs. blocked gradients for twos, threes, and fours.
+- Search: minimax with alpha-beta pruning; deterministic candidate ordering.
 
 ## Platform Support
 
@@ -125,7 +138,7 @@ composeApp/
 │   ├── commonMain/kotlin/com/gomoku/nusv/
 │   │   ├── model/      # Board, stones, game configuration
 │   │   ├── logic/      # WinChecker (five-in-a-row detection), GomokuAI engine
-│   │   ├── data/       # ProfileStore (persistence), ScoreService (scoring rules)
+│   │   ├── data/       # ProfileStore (persistence), scoring, sign-in, tasks, power-ups
 │   │   ├── sound/      # Cross-platform synthesized sound player
 │   │   └── ui/         # GameController, board rendering, screens and dialogs
 │   ├── androidMain/    # MainActivity, manifest, launcher icons, platform AI budget
@@ -143,17 +156,28 @@ profile is a one-file change per target.
 User data is stored via the multiplatform-settings library (SharedPreferences on
 Android, Preferences on the desktop JVM):
 
-- player profile (stats, streaks, unlocked achievements) — stored with light
+- player profile (stats, streaks, points, unlocked achievements, power-up stock,
+  daily sign-in and task progress, purchased decorations) — stored with light
   obfuscation and an integrity checksum to prevent manual save-file tampering
-- selected theme
+- selected theme and equipped decorations
 - game configuration (mode, difficulty, board size, timer, language)
 - the most recent unfinished game, restored on demand
+- legacy keys from older versions are cleaned up automatically after migration,
+  so no stale version data is ever read
 
 ### Save export / import
 
 The Settings page can export the save as a versioned JSON document to the
-clipboard and import it back (checksum-verified). This works on both macOS and
-Android, so a save can be moved between devices.
+clipboard or paste it into the import text box (checksum-verified). This works on
+both macOS and Android, so a save can be moved between devices.
+
+> **Upgrade note: updates reset the save (by design).** Every app version starts
+> fresh — updating the app clears local progress. To keep your progress:
+> 1. Before updating: Settings → Save backup → Export, and keep the text.
+> 2. After updating: Settings → Save backup → paste the text into the import box
+>    (or copy it and press Import) to restore.
+>
+> See the [CHANGELOG](CHANGELOG.md) for per-version upgrade notes.
 
 ## License
 

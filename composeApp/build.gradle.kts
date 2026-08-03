@@ -47,6 +47,7 @@ kotlin {
 
         commonTest.dependencies {
             implementation(kotlin("test"))
+            implementation(libs.multiplatform.settings.test)
         }
     }
 }
@@ -59,8 +60,8 @@ android {
         applicationId = "com.gomoku.nusv"
         minSdk = 26
         targetSdk = 36
-        versionCode = 10
-        versionName = "1.4.3"
+        versionCode = 11
+        versionName = "1.4.4"
     }
     packaging {
         resources {
@@ -85,7 +86,7 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Deb)
             packageName = "Gomoku-NUSV"
-            packageVersion = "1.4.3"
+            packageVersion = "1.4.4"
             description = "五子棋对弈应用 Gomoku-NUSV"
             vendor = "Gomoku"
         }

@@ -6,6 +6,7 @@ import com.gomoku.nusv.model.GameMode
 import com.gomoku.nusv.model.Move
 import com.gomoku.nusv.model.Position
 import com.gomoku.nusv.model.Stone
+import com.gomoku.nusv.APP_VERSION
 import com.russhwolf.settings.Settings
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
@@ -44,7 +45,8 @@ data class PlayerProfile(
     val selectedEffectColor: String = "default",
     val selectedGlow: String = "none",
     val selectedWinLine: String = "default",
-    val powerups: Map<String, Int> = emptyMap()
+    val powerups: Map<String, Int> = emptyMap(),
+    val appVersion: String = ""
 )
 
 @Serializable
@@ -70,10 +72,33 @@ class ProfileStore(private val settings: Settings) {
 
     private val json = Json { ignoreUnknownKeys = true }
 
+    /**
+     * 加载存档。
+     * 设计：每个版本号一次全新开始 —— 检测到存档来自其他版本（appVersion 不匹配）
+     * 时自动重置为新玩家状态，不保留旧存档。想延续进度请先导出，更新后再导入。
+     */
     fun loadProfile(): PlayerProfile {
-        val profile = rawProfile()?.withInitialPowerups() ?: PlayerProfile().withInitialPowerups()
-        if (profile.powerups.isEmpty()) saveProfile(profile)
-        return profile
+        val loaded = rawProfile()
+        val fresh = PlayerProfile(appVersion = APP_VERSION).withInitialPowerups()
+        if (loaded == null || loaded.appVersion != APP_VERSION) {
+            saveProfile(fresh)
+            settings.remove(KEY_SAVED_GAME)
+            cleanupLegacyKeys()
+            return fresh
+        }
+        val migrated = loaded.withInitialPowerups()
+        cleanupLegacyKeys()
+        return migrated
+    }
+
+    /**
+     * 清理旧版本残留数据，避免版本残留：
+     * - 1.3.x 及更早的明文存档 key：已被加密 key 取代，读取迁移后删除。
+     */
+    private fun cleanupLegacyKeys() {
+        if (settings.getStringOrNull(KEY_PROFILE) != null) {
+            settings.remove(KEY_PROFILE)
+        }
     }
 
     private fun rawProfile(): PlayerProfile? {
@@ -124,7 +149,7 @@ class ProfileStore(private val settings: Settings) {
         } catch (_: Exception) {
             return false
         }
-        saveProfile(profile)
+        saveProfile(profile.copy(appVersion = APP_VERSION))
         return true
     }
 

@@ -5,6 +5,35 @@ All notable changes to Gomoku-NUSV are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 升级须知（Upgrade Notes）
+
+> **更新会重置本地存档（设计如此）。**
+> 每个版本号是一次全新开始：安装新版本后，旧存档不会被保留，游戏会以新玩家状态启动。
+> 想延续存档进度，请按以下步骤操作：
+> 1. **更新前**：打开 设置 → 存档备份 → 导出存档，保存导出的文本。
+> 2. **更新后**：打开 设置 → 存档备份 → 将文本粘贴到输入框（或复制后点"导入存档"），
+>    校验通过即恢复。
+>
+> 历史已知问题：v1.3.0 曾存在存档加密往返缺陷（v1.3.1 已修复）。
+
+## [1.4.4] - 2026-08-01
+
+### Changed
+
+- **Updates reset the save (intended)** — each app version starts fresh. When a
+  save from another version is detected, it is reset to a new-player state and
+  old unfinished games are cleared. To keep progress, export the save before
+  updating and import it afterwards.
+- Saves now record the app version they belong to; imported saves are tagged with
+  the current version so they are never reset again.
+- Legacy plain-text profile keys from 1.3.x are cleaned up after loading.
+
+### 升级须知（重要）
+
+- **本次更新会重置存档**：升级到 1.4.4 后本地存档将清空（新玩家状态）。
+- 想保留进度：更新前先在 设置 → 存档备份 → 导出存档；更新后导入即可恢复。
+- 从 1.4.3 升级的用户请注意提前备份。
+
 ## [1.4.3] - 2026-08-01
 
 ### Added
@@ -18,6 +47,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     stock and disable when empty.
   - The shop sells hints (100 pts each) and time boosts (80 pts each) in packs
     of 1 / 5 / 10, giving points a direct gameplay use.
+
+### 升级须知
+
+- **更新会重置存档**：每个新版本号都会以新玩家状态开始，旧存档不保留。
+- 想延续进度：更新前 设置 → 存档备份 → 导出存档，更新后导入。
 
 ## [1.4.2] - 2026-08-01
 
