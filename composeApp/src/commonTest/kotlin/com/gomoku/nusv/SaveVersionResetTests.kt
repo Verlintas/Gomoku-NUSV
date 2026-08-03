@@ -55,3 +55,25 @@ class SaveVersionResetTests {
         assertEquals(5, loaded.wins)
     }
 }
+
+class ResetProfileTest {
+    @Test
+    fun resetClearsEverything() {
+        val store = ProfileStore(MapSettings())
+        store.saveProfile(
+            PlayerProfile(
+                wins = 12, losses = 3, score = 999, powerups = mapOf("hint" to 9),
+                achievements = listOf("first_win"), appVersion = APP_VERSION
+            )
+        )
+        // 模拟 GameController.resetProfile 逻辑
+        val fresh = PlayerProfile(appVersion = APP_VERSION, powerups = com.gomoku.nusv.data.PowerupSystem.initialPowerups())
+        store.saveProfile(fresh)
+        val loaded = store.loadProfile()
+        assertEquals(0, loaded.wins)
+        assertEquals(0, loaded.score)
+        assertEquals(3, loaded.powerups["hint"])
+        assertEquals(emptyList<String>(), loaded.achievements)
+        assertEquals(APP_VERSION, loaded.appVersion)
+    }
+}

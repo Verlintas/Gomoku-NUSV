@@ -16,6 +16,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 >
 > 历史已知问题：v1.3.0 曾存在存档加密往返缺陷（v1.3.1 已修复）。
 
+## [1.4.6] - 2026-08-01
+
+### Fixed
+
+- **Bogus timeout forfeit on an empty board** — the move timer ran everywhere,
+  so staying on the Home screen (or starting a game without moving) for longer
+  than the per-move limit silently forfeited the game (e.g. a brand-new install
+  suddenly showing 1 loss). The timeout countdown now starts only after the first
+  stone is placed.
+- Removed the leftover hardcoded Chinese accessibility label on the board canvas.
+
+### Added
+
+- **Reset Save button in Settings** with a two-step confirmation dialog:
+  first confirmation, then a second "cannot be undone" confirmation. It restores
+  the game to a fresh state (stats, points, power-ups, sign-in, tasks).
+
+### 升级须知（重要）
+
+- **本次更新会重置存档**：升级到 1.4.6 后本地存档清空（新玩家状态）。
+- 想保留进度：更新前 设置 → 存档备份 → 导出存档；更新后导入恢复。
+
 ## [1.4.5] - 2026-08-01
 
 ### Changed

@@ -10,6 +10,7 @@ import com.gomoku.nusv.data.DailyTaskSystem
 import com.gomoku.nusv.data.Decoration
 import com.gomoku.nusv.data.DecorationRegistry
 import com.gomoku.nusv.data.DecorationType
+import com.gomoku.nusv.data.PlayerProfile
 import com.gomoku.nusv.data.PowerupSystem
 import com.gomoku.nusv.data.PowerupType
 import com.gomoku.nusv.data.ProfileStore
@@ -29,6 +30,7 @@ import com.gomoku.nusv.model.GameStatus
 import com.gomoku.nusv.model.Move
 import com.gomoku.nusv.model.Position
 import com.gomoku.nusv.model.Stone
+import com.gomoku.nusv.APP_VERSION
 import com.gomoku.nusv.i18n.I18n
 import com.gomoku.nusv.sound.SoundPlayer
 import com.gomoku.nusv.sound.SoundType
@@ -375,6 +377,16 @@ class GameController(
         store.saveProfile(profile)
     }
 
+    // ---------- 重置存档 ----------
+
+    /** 重置存档到全新状态（新玩家，当前版本标记），不可恢复。 */
+    fun resetProfile() {
+        profile = PlayerProfile(appVersion = APP_VERSION, powerups = PowerupSystem.initialPowerups())
+        store.saveProfile(profile)
+        store.saveSavedGame(null)
+        restart()
+    }
+
     // ---------- 存档导出 / 导入 ----------
 
     fun exportSave(): String = store.exportProfileJson()
@@ -438,10 +450,14 @@ class GameController(
                 delay(1000)
                 if (status != GameStatus.PLAYING) break
                 totalSeconds++
-                turnSecondsLeft--
-                if (turnSecondsLeft <= 0) {
-                    withContext(Dispatchers.Main) { onTimeout() }
-                    break
+                // 限时判负从第一手落子后才开始：
+                // 停留在主页或新对局尚未落子时，不允许"空棋盘超时判负"
+                if (moveHistory.isNotEmpty()) {
+                    turnSecondsLeft--
+                    if (turnSecondsLeft <= 0) {
+                        withContext(Dispatchers.Main) { onTimeout() }
+                        break
+                    }
                 }
             }
         }

@@ -19,6 +19,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -26,6 +27,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -341,6 +343,7 @@ fun SettingsPage(
     val clipboard = LocalClipboardManager.current
     var importText by remember { mutableStateOf("") }
     var message by remember { mutableStateOf<String?>(null) }
+    var resetStep by remember { mutableStateOf(0) }
 
     Surface(color = theme.uiBackground, modifier = Modifier.fillMaxSize()) {
         Column(
@@ -526,6 +529,24 @@ fun SettingsPage(
 
                     HorizontalDivider(color = theme.uiSurfaceVariant)
 
+                    Text(I18n.t("settings_reset"), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = theme.textSecondary)
+                    Text(
+                        I18n.t("settings_reset_desc"),
+                        fontSize = 12.sp,
+                        color = theme.textSecondary
+                    )
+                    Button(
+                        onClick = { resetStep = 1 },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                            containerColor = androidx.compose.ui.graphics.Color(0xFFC62828)
+                        )
+                    ) {
+                        Text(I18n.t("settings_reset_btn"), fontSize = 13.sp)
+                    }
+
+                    HorizontalDivider(color = theme.uiSurfaceVariant)
+
                     Text(I18n.t("settings_about"), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = theme.textSecondary)
                     Text(
                         "Gomoku-NUSV ${com.gomoku.nusv.APP_VERSION}",
@@ -535,5 +556,52 @@ fun SettingsPage(
                 }
             }
         }
+    }
+
+    if (resetStep == 1) {
+        AlertDialog(
+            onDismissRequest = { resetStep = 0 },
+            containerColor = theme.uiSurface,
+            title = { Text(I18n.t("reset_confirm_title"), color = theme.textPrimary) },
+            text = { Text(I18n.t("reset_confirm_body"), color = theme.textSecondary) },
+            confirmButton = {
+                Button(
+                    onClick = { resetStep = 2 },
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = androidx.compose.ui.graphics.Color(0xFFC62828)
+                    )
+                ) {
+                    Text(I18n.t("settings_reset_btn"), fontSize = 13.sp)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { resetStep = 0 }) { Text(I18n.t("cancel")) }
+            }
+        )
+    }
+    if (resetStep == 2) {
+        AlertDialog(
+            onDismissRequest = { resetStep = 0 },
+            containerColor = theme.uiSurface,
+            title = { Text(I18n.t("reset_confirm2_title"), color = androidx.compose.ui.graphics.Color(0xFFC62828)) },
+            text = { Text(I18n.t("reset_confirm2_body"), color = theme.textSecondary) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        controller.resetProfile()
+                        resetStep = 0
+                        message = I18n.t("reset_done")
+                    },
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = androidx.compose.ui.graphics.Color(0xFFC62828)
+                    )
+                ) {
+                    Text(I18n.t("reset_confirm_final"), fontSize = 13.sp)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { resetStep = 0 }) { Text(I18n.t("cancel")) }
+            }
+        )
     }
 }

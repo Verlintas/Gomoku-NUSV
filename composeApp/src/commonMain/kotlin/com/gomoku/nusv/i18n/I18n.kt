@@ -251,7 +251,16 @@ object I18n {
         "import_paste_confirm" to "从输入框导入",
         "powerup_shop_title" to "对局道具",
         "powerup_hint_desc" to "AI 推荐一步（本局高亮提示点）",
-        "powerup_time_desc" to "当前回合 +30 秒思考时间"
+        "powerup_time_desc" to "当前回合 +30 秒思考时间",
+        "settings_reset" to "重置存档",
+        "settings_reset_desc" to "将游戏恢复到全新状态（清空战绩、积分、道具与进度），此操作不可撤销",
+        "settings_reset_btn" to "重置存档",
+        "reset_confirm_title" to "确定要重置存档吗？",
+        "reset_confirm_body" to "这会将游戏恢复到全新状态：战绩、积分、道具、签到与每日任务进度都会被清空。",
+        "reset_confirm2_title" to "再次确认（不可恢复）",
+        "reset_confirm2_body" to "此操作无法撤销。建议先导出存档备份，再执行重置。确定继续吗？",
+        "reset_confirm_final" to "确认重置",
+        "reset_done" to "存档已重置为全新状态"
     )
 
     private val en: Map<String, String> = mapOf(
@@ -483,7 +492,16 @@ object I18n {
         "import_paste_confirm" to "Import from text box",
         "powerup_shop_title" to "Game Power-ups",
         "powerup_hint_desc" to "AI suggests the best move (highlighted on the board)",
-        "powerup_time_desc" to "+30 seconds for the current turn"
+        "powerup_time_desc" to "+30 seconds for the current turn",
+        "settings_reset" to "Reset Save",
+        "settings_reset_desc" to "Restore the game to a fresh state (clears stats, points, power-ups and progress). This cannot be undone",
+        "settings_reset_btn" to "Reset Save",
+        "reset_confirm_title" to "Reset the save?",
+        "reset_confirm_body" to "This restores the game to a fresh state: stats, points, power-ups, sign-in and daily task progress will all be cleared.",
+        "reset_confirm2_title" to "Confirm again (cannot be undone)",
+        "reset_confirm2_body" to "This cannot be undone. Consider exporting a backup first. Continue?",
+        "reset_confirm_final" to "Reset Now",
+        "reset_done" to "Save has been reset to a fresh state"
     )
 
     fun t(key: String): String = (if (currentLanguage == Language.ZH) zh else en)[key] ?: key
