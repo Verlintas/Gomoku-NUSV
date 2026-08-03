@@ -230,6 +230,11 @@ both macOS and Android, so a save can be moved between devices.
 >
 > See the [CHANGELOG](CHANGELOG.md) for per-version upgrade notes.
 
+## HarmonyOS NEXT
+
+A porting guide for pure HarmonyOS (ArkUI shell + shared Kotlin logic) is
+available at **[docs/harmonyos-porting.md](docs/harmonyos-porting.md)**.
+
 ## License
 
 Released under the [MIT License](LICENSE).
