@@ -85,6 +85,21 @@ All targets share one codebase. The desktop targets (macOS and Windows) run on t
 JVM, so no Xcode is required; Windows installers are produced with `jpackage` and
 must be built on a Windows machine.
 
+### Installing on an Android car head unit
+
+The **Android Automotive variant** (`Gomoku-NUSV-automotive.apk`) is landscape-
+locked, declares the `android.hardware.type.automotive` feature and uses a
+separate package name (`com.gomoku.nusv.automotive`) so it can coexist with the
+phone build.
+
+- **Domestic car head units** (most run Android and allow sideloading): copy the
+  APK to the unit (USB / network share) and install it, or use the built-in file
+  manager / app store's sideload feature.
+- **Android Automotive OS**: install via `adb install` over the debugging
+  bridge, or publish through the car's app store.
+- **Usage note**: the game is best played while parked, from the front passenger
+  seat, or in the rear-seat entertainment system — never while driving.
+
 ### Installing on your iPhone
 
 iOS apps are normally distributed only through the App Store. Without a paid
@@ -175,7 +190,8 @@ Windows installers from macOS). This repository ships a ready-made builder:
 
 Artifacts are produced under:
 
-- `composeApp/build/outputs/apk/debug/` — Android APK
+- `composeApp/build/outputs/apk/debug/` — Android phone APK
+- `composeApp/build/outputs/apk/automotive/debug/` — Android Automotive (车机) APK
 - `composeApp/build/compose/binaries/main/dmg/` — macOS disk image
 - `composeApp/build/compose/binaries/main/msi/` — Windows installer (built on Windows)
 - `composeApp/build/compose/binaries/main/app/` — unpackaged macOS `.app`
