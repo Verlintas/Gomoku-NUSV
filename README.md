@@ -85,20 +85,21 @@ must be built on a Windows machine.
 
 ### Installing on your iPhone
 
-iOS apps are normally distributed only through the App Store, but you can install
-this app on your own iPhone with a **free Apple ID**:
+iOS apps are normally distributed only through the App Store. Without a paid
+developer account you can still install this app on your own iPhone using a free
+Apple ID — see the full guide: **[docs/ios-installation.md](docs/ios-installation.md)**.
 
-1. Open `iosApp/iosApp.xcodeproj` in Xcode.
-2. Select the `iosApp` target → **Signing & Capabilities** → enable
-   *Automatically manage signing* → choose your Apple ID as the Team (add it in
-   Xcode → Settings → Accounts first; use the free *Personal Team*).
-3. Connect your iPhone, trust the computer on the device, pick the iPhone as the
-   run destination and press Cmd+R.
-4. On first launch the device asks to trust the developer certificate.
+Quick options:
 
-Free personal signing expires after 7 days — reconnect and re-run from Xcode to
-renew. (TestFlight / App Store distribution requires a paid Apple Developer
-account.)
+1. **Xcode free signing** — open `iosApp/iosApp.xcodeproj`, enable *Automatically
+   manage signing* with your free Personal Team, connect the iPhone, Cmd+R
+   (renews every 7 days by re-running).
+2. **AltStore sideload** — install AltStore via AltServer, import the unsigned
+   `.ipa` from the Releases page; auto-renews while your computer's AltServer is
+   online.
+3. **爱思助手** — the unsigned `.ipa` can be auto-signed and installed via i4.cn.
+
+The unsigned `Gomoku-NUSV-1.4.6-compatibility.ipa` is attached to the Releases.
 
 > Note: the iOS build targets arm64 devices and the arm64 simulator; the Intel
 > (x86_64) simulator is not supported by the current Compose toolchain.
