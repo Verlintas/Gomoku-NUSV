@@ -5,6 +5,31 @@ All notable changes to Gomoku-NUSV are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.1] - 2026-08-04
+
+### Fixed (LAN battle — usability)
+
+- **Room discovery could fail on some machines**: `InetAddress.getLocalHost()`
+  triggered a slow DNS reverse lookup (seconds), expiring the scan window before
+  a single packet was sent. Scanning now enumerates NIC subnets directly (no
+  DNS) and computes its deadline after setup, so scans always work.
+- **Leftover stones from a previous game**: the board is now cleared when a LAN
+  session connects, so every LAN game starts fresh (previously a finished PVP
+  game could carry over).
+- **AI could play in LAN games**: if the last mode was vs-AI, the AI might move
+  automatically during a LAN battle. LAN sessions now force two-player mode.
+- **Bogus "opponent disconnected" after leaving**: manually leaving a LAN
+  session no longer shows a disconnect notice.
+- Faster timeouts: host wait 20 s → 12 s, join connect 10 s → 8 s.
+- Rewrote the scan implementation cleanly and added a full-flow integration
+  test (discovery → connect → Start/Move/Undo/Resign over the wire).
+
+### 升级须知 / Upgrade Notes
+
+- **EN**: Updating to 1.6.1 resets the local save (new-player state). To keep
+  progress: export your save before updating and import it after.
+- **中文**: 本次更新会重置存档（新玩家状态）。想保留进度：更新前 设置 → 存档备份 → 导出存档；更新后导入恢复。
+
 ## [1.6.0-S] - 2026-08-04
 
 ### Added
@@ -171,7 +196,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   wide up to large screens (responsive columns, wrapping chip groups, compact
   headers) for consistent experience across macOS / Windows / Android at any DPI.
 
-### [1.6.0-S] - 2026-08-04
+### [1.6.1] - 2026-08-04
+
+### Fixed (LAN battle — usability)
+
+- **Room discovery could fail on some machines**: `InetAddress.getLocalHost()`
+  triggered a slow DNS reverse lookup (seconds), expiring the scan window before
+  a single packet was sent. Scanning now enumerates NIC subnets directly (no
+  DNS) and computes its deadline after setup, so scans always work.
+- **Leftover stones from a previous game**: the board is now cleared when a LAN
+  session connects, so every LAN game starts fresh (previously a finished PVP
+  game could carry over).
+- **AI could play in LAN games**: if the last mode was vs-AI, the AI might move
+  automatically during a LAN battle. LAN sessions now force two-player mode.
+- **Bogus "opponent disconnected" after leaving**: manually leaving a LAN
+  session no longer shows a disconnect notice.
+- Faster timeouts: host wait 20 s → 12 s, join connect 10 s → 8 s.
+- Rewrote the scan implementation cleanly and added a full-flow integration
+  test (discovery → connect → Start/Move/Undo/Resign over the wire).
+
+### 升级须知 / Upgrade Notes
+
+- **EN**: Updating to 1.6.1 resets the local save (new-player state). To keep
+  progress: export your save before updating and import it after.
+- **中文**: 本次更新会重置存档（新玩家状态）。想保留进度：更新前 设置 → 存档备份 → 导出存档；更新后导入恢复。
+
+## [1.6.0-S] - 2026-08-04
 
 ### Added
 
@@ -316,7 +366,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   first confirmation, then a second "cannot be undone" confirmation. It restores
   the game to a fresh state (stats, points, power-ups, sign-in, tasks).
 
-### [1.6.0-S] - 2026-08-04
+### [1.6.1] - 2026-08-04
+
+### Fixed (LAN battle — usability)
+
+- **Room discovery could fail on some machines**: `InetAddress.getLocalHost()`
+  triggered a slow DNS reverse lookup (seconds), expiring the scan window before
+  a single packet was sent. Scanning now enumerates NIC subnets directly (no
+  DNS) and computes its deadline after setup, so scans always work.
+- **Leftover stones from a previous game**: the board is now cleared when a LAN
+  session connects, so every LAN game starts fresh (previously a finished PVP
+  game could carry over).
+- **AI could play in LAN games**: if the last mode was vs-AI, the AI might move
+  automatically during a LAN battle. LAN sessions now force two-player mode.
+- **Bogus "opponent disconnected" after leaving**: manually leaving a LAN
+  session no longer shows a disconnect notice.
+- Faster timeouts: host wait 20 s → 12 s, join connect 10 s → 8 s.
+- Rewrote the scan implementation cleanly and added a full-flow integration
+  test (discovery → connect → Start/Move/Undo/Resign over the wire).
+
+### 升级须知 / Upgrade Notes
+
+- **EN**: Updating to 1.6.1 resets the local save (new-player state). To keep
+  progress: export your save before updating and import it after.
+- **中文**: 本次更新会重置存档（新玩家状态）。想保留进度：更新前 设置 → 存档备份 → 导出存档；更新后导入恢复。
+
+## [1.6.0-S] - 2026-08-04
 
 ### Added
 
@@ -462,7 +537,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   references an unowned item.
 - Removed dead per-effect toggle code.
 
-### [1.6.0-S] - 2026-08-04
+### [1.6.1] - 2026-08-04
+
+### Fixed (LAN battle — usability)
+
+- **Room discovery could fail on some machines**: `InetAddress.getLocalHost()`
+  triggered a slow DNS reverse lookup (seconds), expiring the scan window before
+  a single packet was sent. Scanning now enumerates NIC subnets directly (no
+  DNS) and computes its deadline after setup, so scans always work.
+- **Leftover stones from a previous game**: the board is now cleared when a LAN
+  session connects, so every LAN game starts fresh (previously a finished PVP
+  game could carry over).
+- **AI could play in LAN games**: if the last mode was vs-AI, the AI might move
+  automatically during a LAN battle. LAN sessions now force two-player mode.
+- **Bogus "opponent disconnected" after leaving**: manually leaving a LAN
+  session no longer shows a disconnect notice.
+- Faster timeouts: host wait 20 s → 12 s, join connect 10 s → 8 s.
+- Rewrote the scan implementation cleanly and added a full-flow integration
+  test (discovery → connect → Start/Move/Undo/Resign over the wire).
+
+### 升级须知 / Upgrade Notes
+
+- **EN**: Updating to 1.6.1 resets the local save (new-player state). To keep
+  progress: export your save before updating and import it after.
+- **中文**: 本次更新会重置存档（新玩家状态）。想保留进度：更新前 设置 → 存档备份 → 导出存档；更新后导入恢复。
+
+## [1.6.0-S] - 2026-08-04
 
 ### Added
 
@@ -600,7 +700,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the current version so they are never reset again.
 - Legacy plain-text profile keys from 1.3.x are cleaned up after loading.
 
-### [1.6.0-S] - 2026-08-04
+### [1.6.1] - 2026-08-04
+
+### Fixed (LAN battle — usability)
+
+- **Room discovery could fail on some machines**: `InetAddress.getLocalHost()`
+  triggered a slow DNS reverse lookup (seconds), expiring the scan window before
+  a single packet was sent. Scanning now enumerates NIC subnets directly (no
+  DNS) and computes its deadline after setup, so scans always work.
+- **Leftover stones from a previous game**: the board is now cleared when a LAN
+  session connects, so every LAN game starts fresh (previously a finished PVP
+  game could carry over).
+- **AI could play in LAN games**: if the last mode was vs-AI, the AI might move
+  automatically during a LAN battle. LAN sessions now force two-player mode.
+- **Bogus "opponent disconnected" after leaving**: manually leaving a LAN
+  session no longer shows a disconnect notice.
+- Faster timeouts: host wait 20 s → 12 s, join connect 10 s → 8 s.
+- Rewrote the scan implementation cleanly and added a full-flow integration
+  test (discovery → connect → Start/Move/Undo/Resign over the wire).
+
+### 升级须知 / Upgrade Notes
+
+- **EN**: Updating to 1.6.1 resets the local save (new-player state). To keep
+  progress: export your save before updating and import it after.
+- **中文**: 本次更新会重置存档（新玩家状态）。想保留进度：更新前 设置 → 存档备份 → 导出存档；更新后导入恢复。
+
+## [1.6.0-S] - 2026-08-04
 
 ### Added
 
@@ -741,7 +866,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - The shop sells hints (100 pts each) and time boosts (80 pts each) in packs
     of 1 / 5 / 10, giving points a direct gameplay use.
 
-### [1.6.0-S] - 2026-08-04
+### [1.6.1] - 2026-08-04
+
+### Fixed (LAN battle — usability)
+
+- **Room discovery could fail on some machines**: `InetAddress.getLocalHost()`
+  triggered a slow DNS reverse lookup (seconds), expiring the scan window before
+  a single packet was sent. Scanning now enumerates NIC subnets directly (no
+  DNS) and computes its deadline after setup, so scans always work.
+- **Leftover stones from a previous game**: the board is now cleared when a LAN
+  session connects, so every LAN game starts fresh (previously a finished PVP
+  game could carry over).
+- **AI could play in LAN games**: if the last mode was vs-AI, the AI might move
+  automatically during a LAN battle. LAN sessions now force two-player mode.
+- **Bogus "opponent disconnected" after leaving**: manually leaving a LAN
+  session no longer shows a disconnect notice.
+- Faster timeouts: host wait 20 s → 12 s, join connect 10 s → 8 s.
+- Rewrote the scan implementation cleanly and added a full-flow integration
+  test (discovery → connect → Start/Move/Undo/Resign over the wire).
+
+### 升级须知 / Upgrade Notes
+
+- **EN**: Updating to 1.6.1 resets the local save (new-player state). To keep
+  progress: export your save before updating and import it after.
+- **中文**: 本次更新会重置存档（新玩家状态）。想保留进度：更新前 设置 → 存档备份 → 导出存档；更新后导入恢复。
+
+## [1.6.0-S] - 2026-08-04
 
 ### Added
 

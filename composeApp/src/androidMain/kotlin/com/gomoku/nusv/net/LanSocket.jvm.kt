@@ -58,7 +58,7 @@ actual fun lanHost(port: Int): LanSocket? {
         server.reuseAddress = true
         server.bind(InetSocketAddress(port))
         // 等待首个连接（最多 20 秒超时，取消/重试响应更快）
-        server.soTimeout = 20_000
+        server.soTimeout = 12_000
         val client = server.accept()
         server.close()
         JvmLanSocket(client)
@@ -72,7 +72,7 @@ actual fun lanHost(port: Int): LanSocket? {
 actual fun lanClient(host: String, port: Int): LanSocket? {
     return try {
         val socket = Socket()
-        socket.connect(InetSocketAddress(host, port), 10_000)
+        socket.connect(InetSocketAddress(host, port), 8_000)
         JvmLanSocket(socket)
     } catch (_: Exception) {
         null

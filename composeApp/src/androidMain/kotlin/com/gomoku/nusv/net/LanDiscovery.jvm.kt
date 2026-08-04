@@ -57,19 +57,42 @@ actual class LanDiscovery actual constructor() {
             socket.broadcast = true
             socket.soTimeout = 400
             val discover = LanProtocol.encode(LanMessage.Discover).toByteArray()
-            val end = System.currentTimeMillis() + 2000
             val seen = HashSet<String>()
+
+            // 广播地址集合：全局广播 + 各网卡的子网广播（部分路由器/热点只放行子网广播）。
+            // 避免 InetAddress.getLocalHost()：无网络环境会触发慢 DNS 反向解析。
+            val targets = buildList {
+                add(broadcastAddress)
+                try {
+                    java.net.NetworkInterface.getNetworkInterfaces()
+                        .toList()
+                        .filter { it.isUp && !it.isLoopback }
+                        .flatMap { it.inetAddresses.toList() }
+                        .filterIsInstance<java.net.Inet4Address>()
+                        .forEach { ip ->
+                            val addr = ip.address.clone()
+                            addr[3] = 255.toByte()
+                            add(java.net.InetAddress.getByAddress(addr).hostAddress)
+                        }
+                } catch (_: Exception) {
+                }
+            }.distinct()
+
+            // 结束时间在准备完成后计算，避免慢初始化吞掉扫描窗口
+            val end = System.currentTimeMillis() + 2500
             try {
                 while (System.currentTimeMillis() < end) {
-                    try {
-                        val out = DatagramPacket(
-                            discover,
-                            discover.size,
-                            InetAddress.getByName(broadcastAddress),
-                            LanProtocol.DISCOVER_PORT
-                        )
-                        socket.send(out)
-                    } catch (_: Exception) {
+                    for (target in targets) {
+                        try {
+                            val out = DatagramPacket(
+                                discover,
+                                discover.size,
+                                InetAddress.getByName(target),
+                                LanProtocol.DISCOVER_PORT
+                            )
+                            socket.send(out)
+                        } catch (_: Exception) {
+                        }
                     }
                     val winEnd = System.currentTimeMillis() + 400
                     while (System.currentTimeMillis() < winEnd) {

@@ -84,6 +84,7 @@ class GameController(
     var lanConnected by mutableStateOf(false)
     var lanGameStarted by mutableStateOf(false)
     var lanStatus by mutableStateOf("")
+    private var lanStoppedByUser = false
     var lanHostAddress by mutableStateOf("")
     var lanRoomName by mutableStateOf("")
     var discoveredRooms by mutableStateOf<List<LanRoom>>(emptyList())
@@ -418,6 +419,8 @@ class GameController(
 
     fun startLanHost(roomName: String = lanRoomName) {
         if (lanMode) return
+        if (config.mode != GameMode.PVP) setMode(GameMode.PVP)
+        lanStoppedByUser = false
         lanMode = true
         lanRole = LanRole.HOST
         lanConnected = false
@@ -477,6 +480,8 @@ class GameController(
 
     fun startLanClient(address: String) {
         if (lanMode) return
+        if (config.mode != GameMode.PVP) setMode(GameMode.PVP)
+        lanStoppedByUser = false
         lanMode = true
         lanRole = LanRole.CLIENT
         lanConnected = false
@@ -505,6 +510,7 @@ class GameController(
 
     fun stopLan() {
         scanGeneration++
+        lanStoppedByUser = true
         lanSocket?.close()
         lanSocket = null
         discovery.stop()
@@ -528,6 +534,8 @@ class GameController(
 
     private fun attachLanSocket(socket: LanSocket, isHost: Boolean) {
         lanSocket = socket
+        // 清空棋盘，保证开局是全新对局（避免上一局残留棋子）
+        restart(sendToLan = false)
         socket.start(
             onLine = { line ->
                 scope.launch {
@@ -535,6 +543,7 @@ class GameController(
                 }
             },
             onDisconnect = {
+                if (lanStoppedByUser) return@start
                 scope.launch {
                     if (lanMode) {
                         lanSocket = null

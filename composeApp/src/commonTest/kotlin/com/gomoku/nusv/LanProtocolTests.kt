@@ -125,3 +125,66 @@ class LanDiscoveryLoopbackTests {
         }
     }
 }
+
+/** 完整 LAN 对局流程集成测试：发现 → 连接 → Start → 落子 → 悔棋 → 认输。 */
+class LanFullFlowTests {
+
+    @Test
+    fun fullFlowHostAndClient() {
+        val discovery = com.gomoku.nusv.net.LanDiscovery()
+        val hostPort = 45812
+        val roomFound = java.util.concurrent.atomic.AtomicReference<com.gomoku.nusv.net.LanRoom?>(null)
+
+        try {
+            // 1) 主机创建房间（UDP 广播）
+            assertTrue(discovery.startHost("integration-room"))
+            Thread.sleep(400) // 等待 UDP 监听线程就绪
+
+            // 2) 扫描发现房间
+            val scanDone = java.util.concurrent.atomic.AtomicBoolean(false)
+            discovery.scan("127.0.0.1", onFound = { roomFound.set(it) }, onDone = { scanDone.set(true) })
+            val scanDeadline = System.currentTimeMillis() + 8000
+            while ((roomFound.get() == null || !scanDone.get()) && System.currentTimeMillis() < scanDeadline) {
+                Thread.sleep(50)
+            }
+            assertEquals("integration-room", roomFound.get()?.name)
+
+            // 3) TCP 连接（模拟加入）
+            var host: com.gomoku.nusv.net.LanSocket? = null
+            val hostThread = Thread { host = com.gomoku.nusv.net.lanHost(hostPort) }
+            hostThread.isDaemon = true
+            hostThread.start()
+            Thread.sleep(300)
+            val client = com.gomoku.nusv.net.lanClient(roomFound.get()!!.host, hostPort)
+            assertNotNull(client, "client should connect")
+            val connDeadline = System.currentTimeMillis() + 5000
+            while (host == null && System.currentTimeMillis() < connDeadline) Thread.sleep(50)
+            assertNotNull(host, "host should accept")
+
+            // 4) 消息双向（模拟 Start/Move/Undo/Resign 序列）
+            val hostMsgs = mutableListOf<com.gomoku.nusv.net.LanMessage>()
+            val clientMsgs = mutableListOf<com.gomoku.nusv.net.LanMessage>()
+            host!!.start(onLine = { hostMsgs.add(LanProtocol.decode(it)!!) }, onDisconnect = {})
+            client.start(onLine = { clientMsgs.add(LanProtocol.decode(it)!!) }, onDisconnect = {})
+
+            host!!.send(LanProtocol.encode(LanMessage.Start))        // 主机开局
+            Thread.sleep(200)
+            assertTrue(clientMsgs.any { it is LanMessage.Start }, "client should receive Start")
+
+            client.send(LanProtocol.encode(LanMessage.Move(7, 7)))   // 白方落子（加入者视角）
+            Thread.sleep(200)
+            assertTrue(hostMsgs.any { it is LanMessage.Move }, "host should receive Move")
+            client.send(LanProtocol.encode(LanMessage.Undo))
+            Thread.sleep(200)
+            assertTrue(hostMsgs.any { it is LanMessage.Undo }, "host should receive Undo")
+            host!!.send(LanProtocol.encode(LanMessage.Resign))
+            Thread.sleep(200)
+            assertTrue(clientMsgs.any { it is LanMessage.Resign }, "client should receive Resign")
+
+            client.close()
+            host!!.close()
+        } finally {
+            discovery.stop()
+        }
+    }
+}
