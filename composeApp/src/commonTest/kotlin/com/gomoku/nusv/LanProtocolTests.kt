@@ -30,7 +30,9 @@ class LanProtocolTests {
         assertTrue(LanProtocol.decode(LanProtocol.encode(LanMessage.Restart)) is LanMessage.Restart)
         assertTrue(LanProtocol.decode(LanProtocol.encode(LanMessage.Resign)) is LanMessage.Resign)
         assertTrue(LanProtocol.decode(LanProtocol.encode(LanMessage.Close)) is LanMessage.Close)
-        assertTrue(LanProtocol.decode(LanProtocol.encode(LanMessage.Start)) is LanMessage.Start)
+        val start = LanProtocol.decode(LanProtocol.encode(LanMessage.Start(13)))
+        assertTrue(start is LanMessage.Start)
+        if (start is LanMessage.Start) assertEquals(13, start.boardSize)
     }
 
     @Test
@@ -167,9 +169,11 @@ class LanFullFlowTests {
             host!!.start(onLine = { hostMsgs.add(LanProtocol.decode(it)!!) }, onDisconnect = {})
             client.start(onLine = { clientMsgs.add(LanProtocol.decode(it)!!) }, onDisconnect = {})
 
-            host!!.send(LanProtocol.encode(LanMessage.Start))        // 主机开局
+            host!!.send(LanProtocol.encode(LanMessage.Start(13)))    // 主机开局（13 路）
             Thread.sleep(200)
-            assertTrue(clientMsgs.any { it is LanMessage.Start }, "client should receive Start")
+            val startMsg = clientMsgs.filterIsInstance<LanMessage.Start>().firstOrNull()
+            assertTrue(startMsg != null, "client should receive Start")
+            assertEquals(13, startMsg?.boardSize)
 
             client.send(LanProtocol.encode(LanMessage.Move(7, 7)))   // 白方落子（加入者视角）
             Thread.sleep(200)

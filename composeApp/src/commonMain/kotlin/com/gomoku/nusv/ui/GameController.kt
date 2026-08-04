@@ -501,10 +501,10 @@ class GameController(
         }
     }
 
-    /** 主机开局：通知对方并进入对局。 */
+    /** 主机开局：通知对方（含棋盘尺寸）并进入对局。 */
     fun hostStartGame() {
         if (lanRole != LanRole.HOST || !lanConnected) return
-        sendLan(LanMessage.Start)
+        sendLan(LanMessage.Start(config.boardSize))
         lanGameStarted = true
     }
 
@@ -580,6 +580,12 @@ class GameController(
             }
             is LanMessage.Close -> stopLan()
             is LanMessage.Start -> {
+                // 同步棋盘尺寸：以房主为准（避免双方棋盘不一致导致错位）
+                if (config.boardSize != message.boardSize) {
+                    config = config.copy(boardSize = message.boardSize)
+                    store.saveConfig(config)
+                    restart(sendToLan = false)
+                }
                 lanGameStarted = true
             }
             is LanMessage.Discover -> {}

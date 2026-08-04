@@ -33,7 +33,7 @@ sealed class LanMessage {
 
     @Serializable
     @SerialName("start")
-    data object Start : LanMessage()
+    data class Start(val boardSize: Int = 15) : LanMessage()
 
     @Serializable
     @SerialName("discover")
