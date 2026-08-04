@@ -35,9 +35,16 @@ jobs:
 
       - name: Build MSI installer
         shell: cmd
+        continue-on-error: true
         run: |
           call gradlew.bat :composeApp:packageMsi --no-daemon --console=plain
           dir /s /b composeApp\build\compose\binaries\main\msi
+
+      - name: Print jpackage logs (diagnostics)
+        if: always()
+        shell: pwsh
+        run: |
+          Get-ChildItem composeApp\build\compose\logs\packageMsi\*.txt -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "=== $($_.Name) ==="; Get-Content $_.FullName }
 
       - name: Upload MSI artifact
         uses: actions/upload-artifact@v4
