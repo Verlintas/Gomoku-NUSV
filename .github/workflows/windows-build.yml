@@ -26,6 +26,13 @@ jobs:
       - name: Set up Android SDK (AGP requires it during configuration)
         uses: android-actions/setup-android@v3
 
+      - name: Install WiX Toolset (required by jpackage for MSI)
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/wixtoolset/wix3/releases/download/wix3141rtm/wix314-binaries.zip" -OutFile "$env:TEMP\wix.zip"
+          Expand-Archive "$env:TEMP\wix.zip" -DestinationPath "$env:TEMP\wix"
+          echo "$env:TEMP\wix" >> $env:GITHUB_PATH
+
       - name: Build MSI installer
         shell: cmd
         run: |
