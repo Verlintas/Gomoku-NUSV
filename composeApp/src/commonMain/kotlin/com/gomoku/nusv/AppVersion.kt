@@ -1,3 +1,3 @@
 package com.gomoku.nusv
 
-const val APP_VERSION = "1.5.3-super"
+const val APP_VERSION = "1.6.0-S"

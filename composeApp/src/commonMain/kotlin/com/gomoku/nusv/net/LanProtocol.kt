@@ -32,6 +32,10 @@ sealed class LanMessage {
     data object Close : LanMessage()
 
     @Serializable
+    @SerialName("start")
+    data object Start : LanMessage()
+
+    @Serializable
     @SerialName("discover")
     data object Discover : LanMessage()
 

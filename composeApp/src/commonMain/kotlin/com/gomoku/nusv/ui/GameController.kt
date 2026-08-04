@@ -82,6 +82,7 @@ class GameController(
     var lanMode by mutableStateOf(false)
     var lanRole by mutableStateOf(LanRole.NONE)
     var lanConnected by mutableStateOf(false)
+    var lanGameStarted by mutableStateOf(false)
     var lanStatus by mutableStateOf("")
     var lanHostAddress by mutableStateOf("")
     var lanRoomName by mutableStateOf("")
@@ -119,6 +120,7 @@ class GameController(
         if (status.isOver || aiThinking) return
         if (config.mode == GameMode.VS_AI && currentStone != playerColor) return
         if (lanMode) {
+            if (!lanGameStarted) return
             val myStone = if (lanRole == LanRole.HOST) Stone.BLACK else Stone.WHITE
             if (currentStone != myStone) return
         }
@@ -414,20 +416,12 @@ class GameController(
 
     fun lanAvailable(): Boolean = lanSupported()
 
-    fun enterLanSetup() {
-        if (lanMode) return
-        setMode(GameMode.PVP)
-        lanMode = true
-        lanRole = LanRole.NONE
-        lanConnected = false
-        lanStatus = ""
-    }
-
     fun startLanHost(roomName: String = lanRoomName) {
         if (lanMode) return
         lanMode = true
         lanRole = LanRole.HOST
         lanConnected = false
+        lanGameStarted = false
         lanStatus = "lan_waiting"
         val name = roomName.ifBlank { "Gomoku-NUSV" }
         if (!discovery.startHost(name)) {
@@ -486,6 +480,7 @@ class GameController(
         lanMode = true
         lanRole = LanRole.CLIENT
         lanConnected = false
+        lanGameStarted = false
         lanStatus = "lan_connecting"
         scope.launch {
             val socket = withContext(Dispatchers.Default) { lanClient(address, LAN_PORT) }
@@ -501,6 +496,13 @@ class GameController(
         }
     }
 
+    /** 主机开局：通知对方并进入对局。 */
+    fun hostStartGame() {
+        if (lanRole != LanRole.HOST || !lanConnected) return
+        sendLan(LanMessage.Start)
+        lanGameStarted = true
+    }
+
     fun stopLan() {
         scanGeneration++
         lanSocket?.close()
@@ -510,6 +512,7 @@ class GameController(
             lanMode = false
             lanRole = LanRole.NONE
             lanConnected = false
+            lanGameStarted = false
             lanStatus = ""
             restart()
         }
@@ -538,6 +541,7 @@ class GameController(
                         lanMode = false
                         lanRole = LanRole.NONE
                         lanConnected = false
+                        lanGameStarted = false
                         lanStatus = "lan_disconnected"
                         if (status == GameStatus.PLAYING) {
                             status = GameStatus.DRAW
@@ -566,6 +570,9 @@ class GameController(
                 }
             }
             is LanMessage.Close -> stopLan()
+            is LanMessage.Start -> {
+                lanGameStarted = true
+            }
             is LanMessage.Discover -> {}
             is LanMessage.Offer -> {}
         }

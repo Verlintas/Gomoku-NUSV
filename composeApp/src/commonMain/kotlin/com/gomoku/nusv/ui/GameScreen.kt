@@ -43,6 +43,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -78,6 +79,12 @@ fun GamePage(
     onThemeChange: (BoardTheme) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // 离开对局页即退出联机（避免后台无人对弈）
+    DisposableEffect(Unit) {
+        onDispose {
+            if (controller.lanMode) controller.stopLan()
+        }
+    }
     Surface(color = theme.uiBackground, modifier = modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
             Header(controller, theme, nav)
@@ -360,6 +367,14 @@ private fun ControlPanel(
                     controller.restart()
                 }
             }
+            if (controller.lanMode) {
+                OutlinedButton(
+                    onClick = { controller.stopLan() },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(I18n.t("lan_leave"), fontSize = 13.sp)
+                }
+            }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 ActionButton(
                     I18n.t("powerup_hint") + " ×${controller.powerupCount(com.gomoku.nusv.data.PowerupType.HINT)}",
@@ -404,18 +419,17 @@ private fun ControlPanel(
                     controller.setMode(GameMode.VS_AI)
                     controller.stopLan()
                 }
-                ChoiceChip(
-                    I18n.t("mode_lan"),
-                    controller.lanMode,
-                    theme
-                ) {
-                    if (!controller.lanMode) {
-                        controller.enterLanSetup()
-                    }
-                }
             }
-            if (controller.lanMode || controller.lanStatus == "lan_disconnected") {
-                LanPanel(controller, theme)
+            if (controller.lanMode) {
+                Text(
+                    I18n.t("lan_battle") + " · " + when (controller.lanRole) {
+                        com.gomoku.nusv.ui.LanRole.HOST -> I18n.t("lan_you_black")
+                        com.gomoku.nusv.ui.LanRole.CLIENT -> I18n.t("lan_you_white")
+                        else -> ""
+                    },
+                    fontSize = 12.sp,
+                    color = theme.accent
+                )
             }
             if (controller.isVsAi) {
                 ChipGroup(I18n.t("difficulty"), theme) {
@@ -742,140 +756,3 @@ private fun difficultyName(d: Difficulty): String = I18n.t(
         Difficulty.HARD -> "diff_hard"
     }
 )
-
-@Composable
-private fun LanPanel(controller: GameController, theme: BoardTheme) {
-    if (!controller.lanConnected) {
-        Card(
-            colors = CardDefaults.cardColors(containerColor = theme.uiSurfaceVariant),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    when (controller.lanStatus) {
-                        "lan_waiting" -> I18n.t("lan_waiting") + "  " + I18n.t("lan_port", "n" to "${com.gomoku.nusv.ui.GameController.LAN_PORT}")
-                        "lan_connecting" -> I18n.t("lan_connecting")
-                        "lan_host_failed" -> I18n.t("lan_host_failed")
-                        "lan_join_failed" -> I18n.t("lan_join_failed")
-                        "lan_host_udp_failed" -> I18n.t("lan_host_udp_failed")
-                        "lan_disconnected" -> I18n.t("lan_disconnected")
-                        else -> I18n.t("lan_setup")
-                    },
-                    fontSize = 12.sp,
-                    color = theme.textPrimary
-                )
-
-                if (controller.lanStatus == "lan_waiting" || controller.lanStatus == "" || controller.lanStatus == "lan_host_udp_failed") {
-                    Text(
-                        I18n.t("lan_ip_label") + ": " + controller.lanHostIp().ifBlank { "-" },
-                        fontSize = 12.sp,
-                        color = theme.textSecondary
-                    )
-                }
-
-                if (!controller.lanAvailable()) {
-                    Text(I18n.t("lan_unsupported"), fontSize = 12.sp, color = Color(0xFFC62828))
-                }
-
-                Text(I18n.t("lan_create_section"), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = theme.textSecondary)
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    TextField(
-                        value = controller.lanRoomName,
-                        onValueChange = { controller.lanRoomName = it },
-                        modifier = Modifier.weight(1f),
-                        placeholder = {
-                            Text(I18n.t("lan_room_name_hint"), fontSize = 12.sp, color = theme.textSecondary)
-                        },
-                        singleLine = true,
-                        textStyle = androidx.compose.ui.text.TextStyle(fontSize = 13.sp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Button(
-                        onClick = { controller.startLanHost() },
-                        enabled = controller.lanStatus != "lan_waiting" && controller.lanStatus != "lan_connecting"
-                    ) {
-                        Text(I18n.t("lan_create"), fontSize = 13.sp)
-                    }
-                }
-
-                Text(I18n.t("lan_join_section"), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = theme.textSecondary)
-                Button(
-                    onClick = { controller.scanLanRooms() },
-                    enabled = !controller.scanning && controller.lanStatus != "lan_waiting" && controller.lanStatus != "lan_connecting",
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(if (controller.scanning) I18n.t("lan_scanning") else I18n.t("lan_scan"), fontSize = 13.sp)
-                }
-                if (controller.scanning) {
-                    Text(I18n.t("lan_scanning_hint"), fontSize = 12.sp, color = theme.textSecondary)
-                } else if (controller.discoveredRooms.isEmpty() && controller.lanStatus != "" && controller.lanStatus != "lan_setup") {
-                    Text(I18n.t("lan_no_rooms"), fontSize = 12.sp, color = theme.textSecondary)
-                }
-                controller.discoveredRooms.forEach { room ->
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = theme.uiSurface),
-                        shape = RoundedCornerShape(10.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(10.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            Column(Modifier.weight(1f)) {
-                                Text(room.name, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = theme.textPrimary)
-                                Text(room.host, fontSize = 11.sp, color = theme.textSecondary)
-                            }
-                            Button(
-                                onClick = { controller.joinLanRoom(room) },
-                                enabled = controller.lanStatus != "lan_waiting" && controller.lanStatus != "lan_connecting"
-                            ) {
-                                Text(I18n.t("lan_join"), fontSize = 13.sp)
-                            }
-                        }
-                    }
-                }
-
-                TextButton(onClick = { controller.stopLan() }) {
-                    Text(I18n.t("lan_cancel"), fontSize = 13.sp)
-                }
-            }
-        }
-    } else {
-        Card(
-            colors = CardDefaults.cardColors(containerColor = theme.uiSurfaceVariant),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Text(
-                    I18n.t("lan_connected"),
-                    fontSize = 13.sp,
-                    color = theme.textPrimary,
-                    modifier = Modifier.weight(1f)
-                )
-                OutlinedButton(onClick = { controller.stopLan() }) {
-                    Text(I18n.t("lan_leave"), fontSize = 13.sp)
-                }
-            }
-        }
-    }
-    if (controller.lanStatus == "lan_disconnected") {
-        Text(
-            I18n.t("lan_rejoin_hint"),
-            fontSize = 12.sp,
-            color = Color(0xFFC62828)
-        )
-    }
-}

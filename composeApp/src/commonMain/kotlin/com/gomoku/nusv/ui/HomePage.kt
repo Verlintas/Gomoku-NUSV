@@ -145,6 +145,13 @@ fun HomePage(
                 widthFactor = cardWidth
             )
             ModeCard(
+                title = I18n.t("nav_lan"),
+                subtitle = I18n.t("home_lan_desc"),
+                onClick = { nav.navigate(Page.LAN) },
+                theme = theme,
+                widthFactor = cardWidth
+            )
+            ModeCard(
                 title = I18n.t("nav_minigame"),
                 subtitle = I18n.t("home_minigame_desc"),
                 onClick = { nav.navigate(Page.TICTACTOE) },

@@ -32,6 +32,7 @@ import com.gomoku.nusv.ui.StatsPage
 import com.gomoku.nusv.ui.TitlesPage
 import com.gomoku.nusv.ui.ShopPage
 import com.gomoku.nusv.ui.SettingsPage
+import com.gomoku.nusv.ui.LanPage
 import com.gomoku.nusv.ui.nav.NavController
 import com.gomoku.nusv.ui.nav.Page
 import com.gomoku.nusv.ui.theme.BoardTheme
@@ -109,6 +110,7 @@ fun App() {
                         Page.ACHIEVEMENTS -> AchievementsPage(controller, activeTheme, nav)
                         Page.STATS -> StatsPage(controller, activeTheme, nav)
                         Page.STORE -> ShopPage(controller, activeTheme, nav)
+                        Page.LAN -> LanPage(controller, activeTheme, nav)
                         Page.TITLES -> TitlesPage(controller, activeTheme, nav)
                         Page.SETTINGS -> SettingsPage(controller, activeTheme, nav, onThemeChange)
                     }

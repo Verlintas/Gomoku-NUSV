@@ -30,6 +30,7 @@ class LanProtocolTests {
         assertTrue(LanProtocol.decode(LanProtocol.encode(LanMessage.Restart)) is LanMessage.Restart)
         assertTrue(LanProtocol.decode(LanProtocol.encode(LanMessage.Resign)) is LanMessage.Resign)
         assertTrue(LanProtocol.decode(LanProtocol.encode(LanMessage.Close)) is LanMessage.Close)
+        assertTrue(LanProtocol.decode(LanProtocol.encode(LanMessage.Start)) is LanMessage.Start)
     }
 
     @Test
