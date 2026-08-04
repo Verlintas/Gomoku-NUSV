@@ -48,13 +48,19 @@ dependencies.
   colors, golden or azure stone glow, a dual-neon win line) and on power-up
   packs (hints 100 pts, time boosts 80 pts, packs of 1 / 5 / 10).
 - **Titles** — eight rank titles earned from your stats, displayed on the Home page.
-- **LAN battle** — play another device on the same WiFi: create a room with a
-  custom name (UDP broadcast) or scan the local network and join rooms with one
-  tap; moves / undo / restart / resign sync over TCP. Android + desktop; iOS
-  shows an unsupported notice.
+- **LAN battle** — play another device on the same WiFi (no internet needed),
+  with a dedicated page flow:
+  - **Home → LAN Battle** opens the multiplayer hub
+  - **Create a room** with a custom name (advertised over UDP broadcast), or
+    **scan the local network** and join any listed room with one tap
+  - A **waiting lobby** shows the room name / host IP while the opponent joins;
+    the joiner waits for the host, then the host presses **Start Game**
+  - Moves, undo, restart and resign sync over TCP; the lobby locks the board
+    until the game starts; leaving the game page ends the session
+  - Android + desktop (macOS / Windows / Linux); iOS shows an unsupported notice
 - **Minigame** — a Tic-Tac-Toe mode (vs AI or two-player) with its own win counter.
-- **Multi-page UI** — Home, Game, Minigame, Achievements, Stats, Titles, and
-  Settings pages with smooth transitions.
+- **Multi-page UI** — Home, Game, LAN hub + lobby, Minigame, Achievements,
+  Stats, Titles, Shop, and Settings pages with smooth transitions.
 - **Accessibility** — the board exposes a semantic click action for screen readers
   and automated UI testing.
 
