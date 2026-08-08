@@ -77,6 +77,7 @@ class GameController(
     var newlyUnlocked by mutableStateOf<List<Achievement>>(emptyList())
     var showAchievementToast by mutableStateOf(false)
     var effectsEnabled by mutableStateOf(store.loadEffectsEnabled())
+    var soundEnabled by mutableStateOf(store.loadSoundEnabled())
 
     // ---------- 局域网对战 ----------
     var lanMode by mutableStateOf(false)
@@ -136,7 +137,7 @@ class GameController(
         moveHistory = moveHistory + move
         lastMove = move.pos
         boardVersion++
-        sound.play(SoundType.PLACE)
+        playSound(SoundType.PLACE)
         if (WinChecker.hasFive(board, row, col, currentStone)) {
             endGame(if (currentStone == Stone.BLACK) GameStatus.BLACK_WIN else GameStatus.WHITE_WIN)
             return
@@ -204,7 +205,7 @@ class GameController(
         }
         store.saveProfile(profile)
         showResultDialog = true
-        sound.play(
+        playSound(
             when {
                 isDraw -> SoundType.DRAW
                 playerWon -> SoundType.WIN
@@ -603,6 +604,10 @@ class GameController(
         const val LAN_PORT = 45678
     }
 
+    private fun playSound(type: SoundType) {
+        if (soundEnabled) sound.play(type)
+    }
+
     /** 重置存档到全新状态（新玩家，当前版本标记），不可恢复。 */
     fun resetProfile() {
         profile = PlayerProfile(appVersion = APP_VERSION, powerups = PowerupSystem.initialPowerups())
@@ -657,6 +662,11 @@ class GameController(
         store.saveEffectsEnabled(enabled)
     }
 
+    fun setSoundEnabledFlag(enabled: Boolean) {
+        soundEnabled = enabled
+        store.saveSoundEnabled(enabled)
+    }
+
     // ---------- 语言 ----------
 
     fun setLanguage(language: I18n.Language) {
@@ -691,7 +701,7 @@ class GameController(
         if (status.isOver) return
         if (lanMode && lanConnected) sendLan(LanMessage.Resign)
         val winner = currentStone.opponent
-        sound.play(SoundType.TIMEOUT)
+        playSound(SoundType.TIMEOUT)
         endGame(if (winner == Stone.BLACK) GameStatus.BLACK_WIN else GameStatus.WHITE_WIN)
     }
 

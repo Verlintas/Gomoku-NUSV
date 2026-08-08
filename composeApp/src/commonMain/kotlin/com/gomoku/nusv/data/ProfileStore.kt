@@ -174,6 +174,12 @@ class ProfileStore(private val settings: Settings) {
         settings.putBoolean(KEY_EFFECTS, enabled)
     }
 
+    fun loadSoundEnabled(): Boolean = settings.getBoolean(KEY_SOUND, true)
+
+    fun saveSoundEnabled(enabled: Boolean) {
+        settings.putBoolean(KEY_SOUND, enabled)
+    }
+
     fun loadConfig(): GameConfig {
         val mode = settings.getStringOrNull(KEY_MODE)?.let { name ->
             GameMode.entries.find { it.name == name }
@@ -227,5 +233,6 @@ class ProfileStore(private val settings: Settings) {
         private const val KEY_SAVED_GAME = "saved_game"
         private const val KEY_LANGUAGE = "language"
         private const val KEY_EFFECTS = "effects_enabled"
+        private const val KEY_SOUND = "sound_enabled"
     }
 }
