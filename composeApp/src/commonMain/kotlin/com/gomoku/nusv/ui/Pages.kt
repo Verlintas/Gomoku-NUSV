@@ -409,6 +409,26 @@ fun SettingsPage(
                             onCheckedChange = { controller.setSoundEnabledFlag(it) }
                         )
                     }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(I18n.t("hint_ai_thinking"), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = theme.textSecondary)
+                            Text(I18n.t("hint_ai_thinking_desc"), fontSize = 11.sp, color = theme.textSecondary)
+                        }
+                        androidx.compose.material3.Switch(
+                            checked = controller.showAiThinkingHint,
+                            onCheckedChange = { controller.setShowAiThinkingFlag(it) }
+                        )
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(I18n.t("hint_perf_warning"), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = theme.textSecondary)
+                            Text(I18n.t("hint_perf_warning_desc"), fontSize = 11.sp, color = theme.textSecondary)
+                        }
+                        androidx.compose.material3.Switch(
+                            checked = controller.showPerfWarning,
+                            onCheckedChange = { controller.setShowPerfWarningFlag(it) }
+                        )
+                    }
 
                     OutlinedButton(
                         onClick = { nav.navigate(com.gomoku.nusv.ui.nav.Page.STORE) },

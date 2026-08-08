@@ -239,7 +239,7 @@ private fun BoardArea(controller: GameController, theme: BoardTheme, modifier: M
                 .fillMaxSize()
                 .padding(8.dp)
         )
-        if (controller.aiThinking) {
+        if (controller.aiThinking && controller.showAiThinkingHint) {
             Card(
                 colors = CardDefaults.cardColors(containerColor = theme.uiSurface.copy(alpha = 0.92f)),
                 shape = RoundedCornerShape(16.dp)
@@ -252,7 +252,7 @@ private fun BoardArea(controller: GameController, theme: BoardTheme, modifier: M
                 )
             }
         }
-        if (controller.aiTimedOut) {
+        if (controller.aiTimedOut && controller.showPerfWarning) {
             PerformanceWarning(controller, theme)
         }
         AchievementToast(controller, theme)

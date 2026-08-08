@@ -78,6 +78,8 @@ class GameController(
     var showAchievementToast by mutableStateOf(false)
     var effectsEnabled by mutableStateOf(store.loadEffectsEnabled())
     var soundEnabled by mutableStateOf(store.loadSoundEnabled())
+    var showAiThinkingHint by mutableStateOf(store.loadShowAiThinking())
+    var showPerfWarning by mutableStateOf(store.loadShowPerfWarning())
 
     // ---------- 局域网对战 ----------
     var lanMode by mutableStateOf(false)
@@ -665,6 +667,16 @@ class GameController(
     fun setSoundEnabledFlag(enabled: Boolean) {
         soundEnabled = enabled
         store.saveSoundEnabled(enabled)
+    }
+
+    fun setShowAiThinkingFlag(enabled: Boolean) {
+        showAiThinkingHint = enabled
+        store.saveShowAiThinking(enabled)
+    }
+
+    fun setShowPerfWarningFlag(enabled: Boolean) {
+        showPerfWarning = enabled
+        store.saveShowPerfWarning(enabled)
     }
 
     // ---------- 语言 ----------

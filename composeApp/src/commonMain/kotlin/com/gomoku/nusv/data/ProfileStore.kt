@@ -180,6 +180,18 @@ class ProfileStore(private val settings: Settings) {
         settings.putBoolean(KEY_SOUND, enabled)
     }
 
+    fun loadShowAiThinking(): Boolean = settings.getBoolean(KEY_AI_THINKING_HINT, true)
+
+    fun saveShowAiThinking(enabled: Boolean) {
+        settings.putBoolean(KEY_AI_THINKING_HINT, enabled)
+    }
+
+    fun loadShowPerfWarning(): Boolean = settings.getBoolean(KEY_PERF_WARNING, true)
+
+    fun saveShowPerfWarning(enabled: Boolean) {
+        settings.putBoolean(KEY_PERF_WARNING, enabled)
+    }
+
     fun loadConfig(): GameConfig {
         val mode = settings.getStringOrNull(KEY_MODE)?.let { name ->
             GameMode.entries.find { it.name == name }
@@ -234,5 +246,7 @@ class ProfileStore(private val settings: Settings) {
         private const val KEY_LANGUAGE = "language"
         private const val KEY_EFFECTS = "effects_enabled"
         private const val KEY_SOUND = "sound_enabled"
+        private const val KEY_AI_THINKING_HINT = "ai_thinking_hint"
+        private const val KEY_PERF_WARNING = "perf_warning"
     }
 }
